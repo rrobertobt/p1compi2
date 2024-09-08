@@ -1,0 +1,427 @@
+package edu.robertob.p1compi2.analysis;
+
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.HashMap;
+
+import edu.robertob.p1compi2.engine.structs.PError;
+
+
+parser code
+{:
+    PLexer s;
+    PParser(PLexer s){this.s = s;}
+    private LinkedList<PError> errorList = new LinkedList<>();
+    public LinkedList<PError> getSyntaxErrorList(){
+        return errorList;
+    }
+//
+    public void syntax_error(Symbol s){
+        errorList.add(new PError("✍ Sintaxis", "No se esperaba el componente: "+s.value, s.left, s.right));
+//          System.out.println("Syntax error at line: "+s.left+" column: "+s.right + " at symbol: "+s.value);
+//          System.out.println(expected_token_ids());
+    }
+//
+    public void unrecovered_syntax_error (Symbol s){
+        errorList.add(new PError("✍ ERROR FATAL - Deteniendo...", "No se esperaba el componente: "+s.value, s.left, s.right));
+//        System.out.println("Unrecovered syntax error at line: "+s.left+" column: "+s.right + " at symbol: "+s.value);
+//        System.out.println(expected_token_ids());
+    }
+
+//    public void report_error(String message, Object info){
+//        errorList.add(new PError("Sintaxis", message);
+//        System.out.println("info: "+info + " message: "+message);
+//    }
+
+:}
+
+action code
+{:
+:}
+
+// Reserverd words
+terminal RW_AND, RW_ARRAY, RW_BEGIN, RW_CASE, RW_CONST, RW_DIV, RW_DO, RW_DOWNTO, RW_ELSE, RW_END, RW_FILE, RW_FOR, RW_FUNCTION, RW_GOTO, RW_IF, RW_IN, RW_LABEL, RW_MOD, RW_NIL, RW_NOT, RW_OF, RW_OR, RW_PACKED, RW_PROCEDURE, RW_PROGRAM, RW_RECORD, RW_REPEAT, RW_SET, RW_THEN, RW_TO, RW_TYPE, RW_UNTIL, RW_VAR, RW_WHILE, RW_WITH, RW_TRUE, RW_FALSE, RW_INTEGER, RW_REAL, RW_CHAR, RW_STRING, RW_BOOLEAN, RW_AND_THEN, RW_OR_ELSE;
+
+terminal UNIT_MINUS;
+terminal String STRING, ID, INTEGER, DECIMAL, CHAR;
+terminal PLUS, MINUS, EQUALS, OPENBRACE, CLOSEBRACE, ASTERISK, SLASH, MODULO, DOUBLEASTERISK, NEGATION, COLON;
+terminal DOUBLEEQUALS, LESS, GREATER, LESSEQUAL, GREATEREQUAL, NOT_EQUALS, LTGT;
+terminal OPENPAR, CLOSEPAR;
+terminal OR, AND, NOT;
+terminal COMMA, SEMICOLON, OPENBRACKET, CLOSEBRACKET, DOT, UNDERSCORE, ARROW;
+//terminal RW_LIST, RW_NEW, RW_APPEND, RW_REMOVE;
+//terminal RW_LENGTH, RW_FIND, RW_ROUND, RW_TOSTRING, RW_STRUCT;
+
+nonterminal START, PROGRAM, PROGRAM_HEADER;
+nonterminal PROGRAM_BODY, PROGRAM_BODY_STATEMENT;
+
+nonterminal TYPE_DECLARATION_BLOCK, TYPE_DECLARATION_LIST, TYPE_DECLARATION, IDENTIFIER_LIST;
+nonterminal RANGE_INT, RANGE_DEF, ARRAY_TYPE;
+nonterminal RECORD_DECLARATION, FIELD_LIST, FIELD_DECLARATION, RECORD_USE;
+nonterminal CONSTANT_DECLARATION_BLOCK, CONSTANT_DECLARATION_LIST, CONSTANT_DECLARATION, CONSTANT_VALUE;
+nonterminal VARIABLE_DECLARATION_BLOCK, VARIABLE_DECLARATION_LIST, VARIABLE_DECLARATION;
+nonterminal TYPE;
+
+nonterminal EXPRESSION;
+
+nonterminal STATEMENTS, STATEMENT;
+nonterminal SYMBOL_ASSIGNATION;
+
+nonterminal IF_STATEMENT, ELSE_IF_BLOCKS, ELSE_IF_BLOCK;
+
+// Precedence: not > and > or > or else, and then
+precedence left RW_OR_ELSE, RW_AND_THEN;
+precedence left RW_OR;
+precedence left RW_AND;
+precedence left RW_NOT;
+precedence left EQUALS, LESS, GREATER, LESSEQUAL, GREATEREQUAL, LTGT;
+precedence left PLUS, MINUS;
+precedence left ASTERISK, RW_DIV, RW_MOD;
+precedence left RW_ELSE;
+precedence right UNIT_MINUS;
+
+start with PROGRAM;
+
+/*
+program {name of the program}
+type {global types declaration block}
+const {global constant declaration block}
+var {global variable declaration block}
+
+function {function declarations, if any}
+{ local variables }
+begin
+...
+end;
+
+procedure { procedure declarations, if any}
+{ local variables }
+begin
+...
+end;
+
+begin { main program block starts}
+...
+end. { the end of main program block }
+*/
+
+
+//START ::= PROGRAM
+//;
+
+
+PROGRAM ::= PROGRAM_HEADER RW_BEGIN PROGRAM_BODY RW_END
+;
+
+PROGRAM_HEADER ::=
+    RW_PROGRAM ID
+    TYPE_DECLARATION_BLOCK
+    CONSTANT_DECLARATION_BLOCK
+    VARIABLE_DECLARATION_BLOCK
+;
+
+/* this production is for the main program block
+because we need to handle special things like semicolons inside if blocks, etc.
+*/
+PROGRAM_BODY ::= PROGRAM_BODY PROGRAM_BODY_STATEMENT
+               | PROGRAM_BODY_STATEMENT
+              ;
+
+PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION SEMICOLON
+                            | IF_STATEMENT
+                            ;
+
+STATEMENTS ::= STATEMENTS SEMICOLON STATEMENT
+             | STATEMENT
+             | /* empty */
+             ;
+
+STATEMENT ::= SYMBOL_ASSIGNATION
+            | IF_STATEMENT
+            ;
+
+/*
+example for types:
+type
+days, age, other, id = integer;
+yes, true = boolean;
+name, city, address = string;
+fees, expenses = real;
+*/
+
+TYPE_DECLARATION_BLOCK ::= RW_TYPE TYPE_DECLARATION_LIST
+;
+
+
+TYPE_DECLARATION_LIST ::= TYPE_DECLARATION
+                        | TYPE_DECLARATION SEMICOLON
+                        | TYPE_DECLARATION SEMICOLON TYPE_DECLARATION_LIST
+                        ;
+
+TYPE_DECLARATION ::= IDENTIFIER_LIST EQUALS TYPE
+                   | IDENTIFIER_LIST EQUALS ARRAY_TYPE
+                   | IDENTIFIER_LIST EQUALS RANGE_DEF
+//                   | IDENTIFIER_LIST EQUALS RW_RECORD ID
+                   | RECORD_DECLARATION
+                   ;
+
+
+IDENTIFIER_LIST ::= IDENTIFIER_LIST COMMA ID
+                  | ID
+                  ;
+
+TYPE ::= RW_INTEGER
+         | RW_REAL
+         | RW_CHAR
+         | RW_STRING
+         | RW_BOOLEAN
+         ;
+
+// Range and array types
+/*
+ex:
+type
+subrango-id = lower-limit ... upper-limit;
+lower-limit y upper-limit deben ser literales enteras o constantes enteras.
+
+type
+array-identifier = array[index-type] of element-type;
+*/
+RANGE_INT ::= INTEGER
+            | MINUS INTEGER
+            ;
+
+RANGE_DEF ::= RANGE_INT DOT DOT RANGE_INT
+            | CHAR DOT DOT CHAR
+             ;
+
+ARRAY_TYPE ::=
+    RW_ARRAY OPENBRACKET RANGE_DEF CLOSEBRACKET RW_OF TYPE
+  | RW_PACKED RW_ARRAY OPENBRACKET RANGE_DEF CLOSEBRACKET RW_OF TYPE
+;
+
+/*
+Record type definition, ex:
+type
+Books = record
+   title: packed array [1..50] of char;
+   author: packed array [1..50] of char;
+   subject: packed array [1..100] of char;
+   book_id: integer;
+end;
+*/
+
+RECORD_DECLARATION ::= IDENTIFIER_LIST EQUALS RECORD_USE
+                   ;
+
+RECORD_USE ::= RW_RECORD FIELD_LIST RW_END
+                    ;
+
+FIELD_LIST ::= FIELD_DECLARATION
+            | FIELD_DECLARATION SEMICOLON
+            | FIELD_DECLARATION SEMICOLON FIELD_LIST
+            ;
+
+
+FIELD_DECLARATION ::= IDENTIFIER_LIST COLON TYPE
+                    | IDENTIFIER_LIST COLON ARRAY_TYPE
+                    | IDENTIFIER_LIST COLON RANGE_DEF
+                    | IDENTIFIER_LIST COLON RW_RECORD ID
+                    ;
+
+/*
+const and var definitions
+const
+P = 18;
+Q = 90;
+PI = 3.141516;
+HOLA_MUNDO = 'hola mundo';
+
+var
+age, weekdays : integer;
+taxrate, net_income: real;
+choice, isready: boolean;
+initials, grade: char;
+name, surname : string;
+marks: 1 ... 100;
+n: array [1..10] of integer;
+var
+Books : record
+   title: packed array [1..50] of char;
+   author: packed array [1..50] of char;
+   subject: packed array [1..100] of char;
+   book_id: integer;
+end;
+*/
+
+/* Constant Declarations */
+CONSTANT_DECLARATION_BLOCK ::= RW_CONST CONSTANT_DECLARATION_LIST:a {: RESULT = a; :}
+                             | /* empty */
+;
+
+//CONSTANT_DECLARATION_LIST ::= CONSTANT_DECLARATION
+//                            | CONSTANT_DECLARATION SEMICOLON
+//                            | CONSTANT_DECLARATION SEMICOLON CONSTANT_DECLARATION_LIST
+
+CONSTANT_DECLARATION_LIST ::= CONSTANT_DECLARATION SEMICOLON CONSTANT_DECLARATION_LIST
+                            | CONSTANT_DECLARATION
+                            | /* empty */
+;
+
+CONSTANT_DECLARATION ::= ID EQUALS CONSTANT_VALUE
+;
+
+CONSTANT_VALUE ::= INTEGER
+                 | DECIMAL
+                 | CHAR
+                 | STRING
+                 | RW_TRUE
+                 | RW_FALSE
+                 ;
+
+                 /* Variable Declarations */
+VARIABLE_DECLARATION_BLOCK ::= RW_VAR VARIABLE_DECLARATION_LIST:a {: RESULT = a; :}
+                          | /* empty */
+;
+
+//VARIABLE_DECLARATION_LIST ::= VARIABLE_DECLARATION
+//                         | VARIABLE_DECLARATION SEMICOLON
+//                         | VARIABLE_DECLARATION SEMICOLON VARIABLE_DECLARATION_LIST
+
+VARIABLE_DECLARATION_LIST ::= VARIABLE_DECLARATION SEMICOLON VARIABLE_DECLARATION_LIST
+                         | VARIABLE_DECLARATION
+                         | /* empty */
+;
+
+VARIABLE_DECLARATION ::= IDENTIFIER_LIST COLON TYPE
+                    | IDENTIFIER_LIST COLON ARRAY_TYPE
+                    | IDENTIFIER_LIST COLON RECORD_USE
+                    | IDENTIFIER_LIST COLON RANGE_DEF
+;
+
+/* assignations, ex:
+greetings := 'Hello ';
+message := 'Good Day!';
+n[ i ] := i + 100;
+// we'll handle records later
+Book1.book_id := 6495407;
+*/
+
+SYMBOL_ASSIGNATION ::= ID COLON EQUALS EXPRESSION
+                    | ID OPENBRACKET EXPRESSION CLOSEBRACKET COLON EQUALS EXPRESSION
+;
+
+/* if statements, ex:
+if (a <= 20) then
+   c:= c+1;
+
+if (a <= 20 and x) then
+begin
+   c:= c+1;
+   { more statements }
+end;
+
+if (a <= 20) then
+   c:= c+1
+else
+begin
+   c:= c - 1;
+   { more statements }
+end;
+
+if(boolean_expression 1)then
+   S1 (* Executes when the boolean expression 1 is true *)
+
+else if( boolean_expression 2) then
+   S2 (* Executes when the boolean expression 2 is true *)
+
+else if( boolean_expression 3) then
+   S3 (* Executes when the boolean expression 3 is true *)
+
+else
+   S4; ( * executes when the none of the above condition is true *)
+*/
+
+IF_STATEMENT ::=
+    // if (exp) then statement;
+    RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT SEMICOLON
+
+    // if (exp) then begin {statements;} end;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+
+  // if (exp) then statement else statement;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT RW_ELSE STATEMENT SEMICOLON
+//
+//  // if (exp) then begin {statements;} end else statement;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE STATEMENT SEMICOLON
+//
+//  // if (exp) then begin {statements;} end else begin {statements;} end;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+//
+//  // if (exp) then statement else begin {statements;} end;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+
+
+    // with else if
+    // if (exp) then statement else if (exp) ...;
+  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS SEMICOLON
+
+  // if (exp) then begin {statements;} end else if (exp) ...;
+    | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE ELSE_IF_BLOCKS SEMICOLON
+
+    // if (exp) then statement else if (exp) ... else statement;
+    | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS RW_ELSE STATEMENT SEMICOLON
+
+    // if (exp) then begin {statements;} else if ... end else statement;
+    | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END ELSE_IF_BLOCKS RW_ELSE STATEMENT SEMICOLON
+
+     // if (exp) then begin {statements;} end else if ... else begin {statements;} end;
+    | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END ELSE_IF_BLOCKS RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+
+    // if (exp) then statement else if ... else begin {statements;} end;
+    | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+
+
+;
+
+ELSE_IF_BLOCKS ::= ELSE_IF_BLOCKS ELSE_IF_BLOCK
+                 | ELSE_IF_BLOCK
+//                 | /* empty */
+                 ;
+
+ELSE_IF_BLOCK ::= RW_ELSE RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT %prec RW_ELSE
+                | RW_ELSE RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END %prec RW_ELSE
+                ;
+
+/*
+expressions handling
+*/
+
+EXPRESSION ::= ID
+             | INTEGER
+             | DECIMAL
+             | CHAR
+             | STRING
+             | RW_TRUE
+             | RW_FALSE
+             | EXPRESSION PLUS EXPRESSION
+             | EXPRESSION MINUS EXPRESSION
+             | EXPRESSION ASTERISK EXPRESSION
+             | EXPRESSION RW_DIV EXPRESSION
+             | EXPRESSION RW_MOD EXPRESSION
+             | MINUS EXPRESSION %prec UNIT_MINUS
+             | RW_NOT EXPRESSION %prec RW_NOT
+             | EXPRESSION EQUALS EXPRESSION
+             | EXPRESSION LESS EXPRESSION
+             | EXPRESSION GREATER EXPRESSION
+             | EXPRESSION LESSEQUAL EXPRESSION
+             | EXPRESSION GREATEREQUAL EXPRESSION
+             | EXPRESSION LTGT EXPRESSION
+             | EXPRESSION RW_AND EXPRESSION %prec RW_AND
+             | EXPRESSION RW_OR EXPRESSION %prec RW_OR
+             | EXPRESSION RW_AND_THEN EXPRESSION %prec RW_AND_THEN
+             | EXPRESSION RW_OR_ELSE EXPRESSION %prec RW_OR_ELSE
+             | OPENPAR EXPRESSION CLOSEPAR
+             ;
+
