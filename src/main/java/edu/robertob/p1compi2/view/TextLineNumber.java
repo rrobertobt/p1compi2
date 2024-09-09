@@ -265,8 +265,8 @@ public class TextLineNumber extends JPanel
     			//  Get the line number as a string and then determine the
     			//  "X" and "Y" offsets for drawing the string.
 
-    			String lineNumber = getTextLineNumber(rowStartOffset);
-    			int stringWidth = fontMetrics.stringWidth( lineNumber );
+				String lineNumber = getTextLineNumber(rowStartOffset);
+				int stringWidth = fontMetrics.stringWidth( lineNumber );
     			int x = getOffsetX(availableWidth, stringWidth) + insets.left;
 				int y = getOffsetY(rowStartOffset, fontMetrics);
     			g.drawString(lineNumber, x, y);
@@ -308,6 +308,19 @@ public class TextLineNumber extends JPanel
 			return String.valueOf(index + 1);
 		else
 			return "";
+	}
+
+	/*
+	* Get the column number from the current line
+	*/
+	protected int getColumnNumber()
+	{
+		int caretPosition = component.getCaretPosition();
+		Element root = component.getDocument().getDefaultRootElement();
+		int currentLine = root.getElementIndex( caretPosition );
+		Element line = root.getElement( currentLine );
+		int column = caretPosition - line.getStartOffset();
+		return column;
 	}
 
 	/*

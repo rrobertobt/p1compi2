@@ -52,7 +52,13 @@ public class SymbolTable {
         this.name = "";
     }
 
-
+    public boolean setSymbol(SymbolVariable symbol) {
+        if (this.symbols.containsKey(symbol.getId().toLowerCase())) {
+            return false;
+        }
+        this.symbols.put(symbol.getId().toLowerCase(), symbol);
+        return true;
+    }
 
     public SymbolTable getParentTable() {
         return parentTable;

@@ -5,8 +5,11 @@ import edu.robertob.p1compi2.analysis.PLexer;
 import edu.robertob.p1compi2.analysis.PParser;
 import edu.robertob.p1compi2.data.CurrentSession;
 import edu.robertob.p1compi2.data.PFile;
+import edu.robertob.p1compi2.engine.base.Statement;
 import edu.robertob.p1compi2.engine.structs.PError;
 import edu.robertob.p1compi2.engine.structs.SymbolTable;
+import edu.robertob.p1compi2.engine.structs.Tree;
+import edu.robertob.p1compi2.engine.structs.TypesTable;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -43,6 +46,7 @@ public class MainFrame extends JFrame {
 //        jTextPane1.setFont(new Font("Monospaced", Font.PLAIN, 14));
 //        jTextPane1.setFont(new Font("JetBrainsMono Nerd Font", Font.PLAIN, 14));
         jTextPane1.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 14));
+        jSplitPane2.setDividerLocation(0.5);
     }
 
     /**
@@ -54,106 +58,107 @@ public class MainFrame extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jToolBar2 = new JToolBar();
-        newFileBtn = new JButton();
-        openFileBtn = new JButton();
-        saveFileBtn = new JButton();
-        jSeparator2 = new JToolBar.Separator();
-        runCodeBtn = new JButton();
-        fileStatusLabel = new JLabel();
-        jSplitPane2 = new JSplitPane();
-        jPanel1 = new JPanel();
-        jTabbedPane1 = new JTabbedPane();
-        jPanel2 = new JPanel();
-        consoleOutputLabel = new JLabel();
-        jScrollPane1 = new JScrollPane();
-        jTextPane1 = new JTextPane();
-        jMenuBar1 = new JMenuBar();
-        reportsMenu = new JMenu();
-        errorsMenuItem = new JMenuItem();
-        jMenuItem2 = new JMenuItem();
+        jToolBar2 = new javax.swing.JToolBar();
+        newFileBtn = new javax.swing.JButton();
+        openFileBtn = new javax.swing.JButton();
+        saveFileBtn = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        runCodeBtn = new javax.swing.JButton();
+        fileStatusLabel = new javax.swing.JLabel();
+        jSplitPane2 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel2 = new javax.swing.JPanel();
+        consoleOutputLabel = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        reportsMenu = new javax.swing.JMenu();
+        errorsMenuItem = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new Color(252, 252, 252));
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(252, 252, 252));
+        setPreferredSize(new java.awt.Dimension(1350, 850));
 
-        jToolBar2.setBackground(new Color(255, 255, 255));
+        jToolBar2.setBackground(new java.awt.Color(255, 255, 255));
         jToolBar2.setBorderPainted(false);
         jToolBar2.setEnabled(false);
 
-        newFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
+        newFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
         newFileBtn.setText("Nuevo archivo");
         newFileBtn.setFocusable(false);
-        newFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        newFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        newFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        newFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        newFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        newFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(newFileBtn);
 
-        openFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
+        openFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
         openFileBtn.setText("Abrir archivo");
         openFileBtn.setFocusable(false);
-        openFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        openFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        openFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        openFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        openFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        openFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(openFileBtn);
 
-        saveFileBtn.setIcon(new ImageIcon(getClass().getResource("/download.png"))); // NOI18N
+        saveFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.png"))); // NOI18N
         saveFileBtn.setText("Guardar archivo");
         saveFileBtn.setEnabled(false);
         saveFileBtn.setFocusable(false);
-        saveFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        saveFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        saveFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        saveFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        saveFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        saveFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(saveFileBtn);
 
-        jSeparator2.setBackground(new Color(204, 204, 204));
-        jSeparator2.setForeground(new Color(0, 0, 0));
+        jSeparator2.setBackground(new java.awt.Color(204, 204, 204));
+        jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
         jSeparator2.setOpaque(true);
-        jSeparator2.setSeparatorSize(new Dimension(1, 30));
+        jSeparator2.setSeparatorSize(new java.awt.Dimension(1, 30));
         jToolBar2.add(jSeparator2);
 
-        runCodeBtn.setIcon(new ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
+        runCodeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
         runCodeBtn.setText("Ejecutar");
         runCodeBtn.setEnabled(false);
         runCodeBtn.setFocusable(false);
-        runCodeBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        runCodeBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        runCodeBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        runCodeBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        runCodeBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        runCodeBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runCodeBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(runCodeBtn);
         jToolBar2.add(fileStatusLabel);
 
-        jSplitPane2.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jSplitPane2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-        jTabbedPane1.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent evt) {
+        jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jTabbedPane1StateChanged(evt);
             }
         });
 
-        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jTabbedPane1, GroupLayout.DEFAULT_SIZE, 259, Short.MAX_VALUE)
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1)
         );
         jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jTabbedPane1, GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE)
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
         );
 
         jSplitPane2.setLeftComponent(jPanel1);
@@ -163,47 +168,47 @@ public class MainFrame extends JFrame {
         jTextPane1.setEditable(false);
         jScrollPane1.setViewportView(jTextPane1);
 
-        GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(consoleOutputLabel)
-                                .addContainerGap(382, Short.MAX_VALUE))
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(consoleOutputLabel)
+                .addContainerGap(663, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
-                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(consoleOutputLabel)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE))
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(consoleOutputLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE))
         );
 
         jSplitPane2.setRightComponent(jPanel2);
 
-        jMenuBar1.setBackground(new Color(252, 252, 252));
+        jMenuBar1.setBackground(new java.awt.Color(252, 252, 252));
         jMenuBar1.setBorder(null);
-        jMenuBar1.setFont(new Font("Helvetica Neue", 0, 15)); // NOI18N
+        jMenuBar1.setFont(new java.awt.Font("Helvetica Neue", 0, 15)); // NOI18N
 
         reportsMenu.setText("Reportes");
         reportsMenu.setEnabled(false);
 
-        errorsMenuItem.setIcon(new ImageIcon(getClass().getResource("/file-sad.png"))); // NOI18N
+        errorsMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-sad.png"))); // NOI18N
         errorsMenuItem.setText("Ver errores");
-        errorsMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        errorsMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
 //                errorsMenuItemActionPerformed(evt);
             }
         });
         reportsMenu.add(errorsMenuItem);
 
-        jMenuItem2.setIcon(new ImageIcon(getClass().getResource("/file-code.png"))); // NOI18N
+        jMenuItem2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-code.png"))); // NOI18N
         jMenuItem2.setText("Ver tabla de simbolos");
-        jMenuItem2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
 //                jMenuItem2ActionPerformed(evt);
             }
         });
@@ -213,23 +218,23 @@ public class MainFrame extends JFrame {
 
         setJMenuBar(jMenuBar1);
 
-        GroupLayout layout = new GroupLayout(getContentPane());
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                        .addComponent(jToolBar2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jSplitPane2, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                .addContainerGap())
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jSplitPane2)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addComponent(jToolBar2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSplitPane2)
-                                .addContainerGap())
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSplitPane2)
+                .addContainerGap())
         );
 
         pack();
@@ -448,11 +453,24 @@ public class MainFrame extends JFrame {
         code = code.trim();
         PLexer lexer = new PLexer(new StringReader(code));
         PParser parser = new PParser(lexer);
-//        parser.expected_token_ids()
         currentSession.getActiveFile().getErrors().clear();
         LinkedList<PError> allErrors = new LinkedList<>();
+
+        // Create the tables (types, symbols)
+        TypesTable typesTable = new TypesTable("Global");
+        typesTable.fillDefaultTypes();
         try {
             var parserResult = parser.parse();
+            var tree = new Tree((LinkedList<Statement>) parserResult.value);
+            var globalTable = new SymbolTable("Global");
+            tree.setGlobalTable(globalTable);
+
+            //todo: 3 passes through the tree (when methods are implemented):
+            // 1. get all the functions and their parameters, also structs
+            // 2. get all the variables and their types
+            // 3. execute the instructions with the START_WITH instruction
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -489,23 +507,23 @@ public class MainFrame extends JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private JLabel consoleOutputLabel;
-    private JMenuItem errorsMenuItem;
-    private JLabel fileStatusLabel;
-    private JMenuBar jMenuBar1;
-    private JMenuItem jMenuItem2;
-    private JPanel jPanel1;
-    private JPanel jPanel2;
-    private JScrollPane jScrollPane1;
-    private JToolBar.Separator jSeparator2;
-    private JSplitPane jSplitPane2;
-    private JTabbedPane jTabbedPane1;
-    private JTextPane jTextPane1;
-    private JToolBar jToolBar2;
-    private JButton newFileBtn;
-    private JButton openFileBtn;
-    private JMenu reportsMenu;
-    private JButton runCodeBtn;
-    private JButton saveFileBtn;
+    private javax.swing.JLabel consoleOutputLabel;
+    private javax.swing.JMenuItem errorsMenuItem;
+    private javax.swing.JLabel fileStatusLabel;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JButton newFileBtn;
+    private javax.swing.JButton openFileBtn;
+    private javax.swing.JMenu reportsMenu;
+    private javax.swing.JButton runCodeBtn;
+    private javax.swing.JButton saveFileBtn;
     // End of variables declaration//GEN-END:variables
 }

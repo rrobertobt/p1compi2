@@ -33,7 +33,7 @@ import java.util.LinkedList;
 %char
 %column
 %full
-%debug
+//%debug
 %ignorecase
 
 OPENPAR="("
@@ -169,6 +169,10 @@ RW_RECORD="record"
 
 RW_AND_THEN="and then"
 RW_OR_ELSE="or else"
+
+RW_WRITELN="writeln"
+RW_READLN="readln"
+
 %%
 
 
