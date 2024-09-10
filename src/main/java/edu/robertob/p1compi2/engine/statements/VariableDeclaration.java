@@ -43,7 +43,18 @@ public class VariableDeclaration extends Statement {
     public Object execute(Tree tree, SymbolTable table, TypesTable typesTable) {
 
         // if a new type is defined within the variable declaration, we have to register it
-        if (isArray || isRange || isRecord) {
+        // but only if it does not exist already
+
+        boolean createType = false;
+        if (this.parentTypeName != null && typesTable.getType(this.parentTypeName) == null) {
+            createType = true;
+        } else if (this.parentTypeName == null && typesTable.getType(this.parentTypeId) == null) {
+            createType = true;
+        }
+
+
+
+        if ((isArray || isRange || isRecord) && createType) {
             final String[] idName = {""};
             ids.forEach(id -> {
                 idName[0] = idName[0] + id;
@@ -61,6 +72,15 @@ public class VariableDeclaration extends Statement {
 //            if (result instanceof PError) {
 //                return result; // Return error if type registration fails
 //            }
+        } else {
+            TypesTable.TypeTableEntry parentType; //= typesTable.getType(this.parentTypeName);
+            if (this.parentTypeName != null) {
+                parentType = typesTable.getType(this.parentTypeName);
+            } else {
+                parentType = typesTable.getType(this.parentTypeId);
+            }
+            this.typeId = parentType.id;
+            this.parentTypeId = parentType.id;
         }
 
         // Register the variable in the symbol table

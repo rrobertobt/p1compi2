@@ -52,6 +52,15 @@ public class SymbolTable {
         this.name = "";
     }
 
+    public SymbolVariable getSymbol(String id) {
+        for (SymbolTable table = this; table != null; table = table.getParentTable()) {
+
+            SymbolVariable symbol = (SymbolVariable) table.symbols.get(id.toLowerCase());
+            if (symbol != null) return symbol;
+        }
+        return null;
+    }
+
     public boolean setSymbol(SymbolVariable symbol) {
         if (this.symbols.containsKey(symbol.getId().toLowerCase())) {
             return false;

@@ -53,9 +53,11 @@ terminal OPENPAR, CLOSEPAR;
 terminal OR, AND, NOT;
 terminal COMMA, SEMICOLON, OPENBRACKET, CLOSEBRACKET, DOT, UNDERSCORE, ARROW;
 
-nonterminal Statement START, PROGRAM;
+nonterminal Program START;
+nonterminal Program PROGRAM;
 nonterminal Program.ProgramHeader PROGRAM_HEADER;
-nonterminal Statement PROGRAM_BODY, PROGRAM_BODY_STATEMENT;
+nonterminal Statement PROGRAM_BODY_STATEMENT;
+nonterminal LinkedList<Statement> PROGRAM_BODY;
 
 //nonterminal Statement DECLARATIONS_BLOCK;
 nonterminal Object[] DECLARATIONS_BLOCK;
@@ -84,14 +86,20 @@ nonterminal Statement EXPRESSION;
 nonterminal Statement STATEMENTS, STATEMENT;
 nonterminal Statement SYMBOL_ASSIGNATION;
 
-nonterminal Statement IF_STATEMENT, ELSE_IF_BLOCKS, ELSE_IF_BLOCK;
+nonterminal Statement IF_STATEMENT;
+nonterminal LinkedList<IfStatement.ConditionBlock> ELSE_IF_BLOCKS;
+nonterminal IfStatement.ConditionBlock ELSE_IF_BLOCK;
 
 nonterminal Statement CASE_STATEMENT, CASE_ELEMENT_LIST, CASE_ELEMENT, CASE_VALUE_LIST, CASE_ELSE, CASE_VALUE;
 
 nonterminal Statement WHILE_STATEMENT, REPEAT_STATEMENT, FOR_STATEMENT;
 
-nonterminal Statement FUNCTION_DECLARATION_BLOCK, FUNCTION_DECLARATION_START, PARAMETERS_DECLARATION, PARAMETER_DECLARATION;
-nonterminal Statement PROCEDURE_DECLARATION_BLOCK, PROCEDURE_DECLARATION_START;
+nonterminal Statement FUNCTION_DECLARATION_BLOCK;
+nonterminal Object[] FUNCTION_DECLARATION_START;
+nonterminal LinkedList<HashMap> PARAMETERS_DECLARATION;
+nonterminal HashMap<String, Object> PARAMETER_DECLARATION;
+nonterminal Statement PROCEDURE_DECLARATION_BLOCK;
+nonterminal Object[] PROCEDURE_DECLARATION_START;
 nonterminal Statement WRITELN_CALL, READLN_CALL;
 nonterminal Statement PROCEDURE_FUNCTION_DECLARATIONS, PROCEDURE_FUNCTION_DECLARATION;
 
@@ -108,12 +116,19 @@ precedence left ASTERISK, RW_DIV, RW_MOD;
 precedence left RW_ELSE;
 precedence right UNIT_MINUS;
 
-start with PROGRAM;
+start with START;
 
 START ::= PROGRAM:a {: RESULT = a; :}
 ;
 
-PROGRAM ::= PROGRAM_HEADER PROCEDURE_FUNCTION_DECLARATIONS RW_BEGIN PROGRAM_BODY RW_END
+PROGRAM ::=
+    PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS RW_BEGIN PROGRAM_BODY:b RW_END {:
+    RESULT = new Program(a,null,b);
+    :}
+    |
+    PROGRAM_HEADER:a RW_BEGIN PROGRAM_BODY:b RW_END {:
+        RESULT = new Program(a,null,b);
+        :}
 ;
 
 PROCEDURE_FUNCTION_DECLARATIONS ::= PROCEDURE_FUNCTION_DECLARATIONS PROCEDURE_FUNCTION_DECLARATION
@@ -149,20 +164,18 @@ DECLARATIONS_BLOCK ::=
 /* this production is for the main program block
 because we need to handle special things like semicolons inside if blocks, etc.
 */
-PROGRAM_BODY ::= PROGRAM_BODY PROGRAM_BODY_STATEMENT
-               | PROGRAM_BODY_STATEMENT
+PROGRAM_BODY ::= PROGRAM_BODY:a PROGRAM_BODY_STATEMENT:b {: RESULT = a; a.add(b); :}
+               | PROGRAM_BODY_STATEMENT:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
               ;
 
-PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION SEMICOLON
-                            | IF_STATEMENT
+PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
+                            | IF_STATEMENT:a {: RESULT = a; :}
                             | CASE_STATEMENT
                             | WHILE_STATEMENT
                             | REPEAT_STATEMENT
                             | FOR_STATEMENT
                             | RW_BREAK SEMICOLON
                             | RW_CONTINUE SEMICOLON
-//                            | FUNCTION_DECLARATION_BLOCK
-//                            | PROCEDURE_DECLARATION_BLOCK
                             | CALL_TO_METHOD SEMICOLON
                             | WRITELN_CALL SEMICOLON
                             | READLN_CALL SEMICOLON
@@ -173,8 +186,8 @@ STATEMENTS ::= STATEMENTS SEMICOLON STATEMENT
              | /* empty */
              ;
 
-STATEMENT ::= SYMBOL_ASSIGNATION
-            | IF_STATEMENT
+STATEMENT ::= SYMBOL_ASSIGNATION:a {: RESULT = a; :}
+            | IF_STATEMENT:a {: RESULT = a; :}
             | CASE_STATEMENT
             | WHILE_STATEMENT
             | REPEAT_STATEMENT
@@ -208,7 +221,7 @@ TYPE_DECLARATION_LIST ::= TYPE_DECLARATION:a {: RESULT = new LinkedList<>(); RES
 TYPE_DECLARATION ::= IDENTIFIER_LIST:a EQUALS TYPE:b {: RESULT = new TypeDeclaration(aleft, aright, a, b, false, false, false, 1, 0, 0); :}
                    | IDENTIFIER_LIST:a EQUALS ARRAY_TYPE:b {: RESULT = new TypeDeclaration(aleft, aright, a, b.getParentTypeId(), true, false, false, ((int)b.getRangeDefinition()[1] - (int)b.getRangeDefinition()[0])+1, (int)b.getRangeDefinition()[0], (int)b.getRangeDefinition()[1]); :}
                    | IDENTIFIER_LIST:a EQUALS RANGE_DEF:b {: RESULT = new TypeDeclaration(aleft, aright, a, TypesTable.DefaultTypes.INTEGER.id, false, true, false, 1, (int)b[0], (int)b[1]); :}
-//                   | IDENTIFIER_LIST EQUALS RW_RECORD ID
+                   | IDENTIFIER_LIST:a EQUALS /*RW_RECORD*/ ID:b {: RESULT = new TypeDeclaration(aleft, aright, a, b, false, false, true, 0, 0, 0); :}
                    | RECORD_DECLARATION
                    ;
 
@@ -315,7 +328,7 @@ VARIABLE_DECLARATION ::= IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new Variable
 assignations
 */
 
-SYMBOL_ASSIGNATION ::= ID COLON EQUALS EXPRESSION
+SYMBOL_ASSIGNATION ::= ID:a COLON EQUALS EXPRESSION:b {: RESULT = new SymbolAssignation(a, b, aleft, aright); :}
                     | ID OPENBRACKET EXPRESSION CLOSEBRACKET COLON EQUALS EXPRESSION
 ;
 
@@ -327,53 +340,114 @@ IF_STATEMENT ::=
 //<editor-fold desc="if else">
 
   // if (exp) then statement;
-  RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT SEMICOLON
+  RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b SEMICOLON {:
+  var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+  RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, new LinkedList<IfStatement.ConditionBlock>()), aleft, aright);
+  :}
 
   // if (exp) then begin {statements;} end;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END SEMICOLON {:
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, new LinkedList<IfStatement.ConditionBlock>()), aleft, aright);
+  :}
 
   // if (exp) then statement else statement;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT RW_ELSE STATEMENT SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b RW_ELSE STATEMENT:c SEMICOLON {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+
+    var statementAsList2 = new LinkedList<Statement>();
+    statementAsList2.add(c);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, new LinkedList<IfStatement.ConditionBlock>()), statementAsList2, aleft, aright);
+  :}
 
   // if (exp) then begin {statements;} end else statement;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE STATEMENT SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END RW_ELSE STATEMENT:c SEMICOLON
+    {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(c);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, new LinkedList<IfStatement.ConditionBlock>()), statementAsList, aleft, aright);
+    :}
 
   // if (exp) then begin {statements;} end else begin {statements;} end;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END RW_ELSE RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON
+    {:
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, new LinkedList<IfStatement.ConditionBlock>()), c, aleft, aright);
+    :}
 
   // if (exp) then statement else begin {statements;} end;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b RW_ELSE RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON
+    {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, new LinkedList<IfStatement.ConditionBlock>()), c, aleft, aright);
+    :}
 
   // with else if
   // if (exp) then statement else if (exp) ...;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b ELSE_IF_BLOCKS:c SEMICOLON
+  {:
+  var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, c), aleft, aright);
+  :}
 
   // if (exp) then begin {statements;} end else if (exp) ...;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END RW_ELSE ELSE_IF_BLOCKS SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END ELSE_IF_BLOCKS:c SEMICOLON
+    {:
+        RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, c), aleft, aright);
+    :}
 
   // if (exp) then statement else if (exp) ... else statement;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS RW_ELSE STATEMENT SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b ELSE_IF_BLOCKS:c RW_ELSE STATEMENT:d SEMICOLON
+    {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+
+    var statementAsList2 = new LinkedList<Statement>();
+    statementAsList2.add(d);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, c), statementAsList2, aleft, aright);
+    :}
 
   // if (exp) then begin {statements;} else if ... end else statement;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END ELSE_IF_BLOCKS RW_ELSE STATEMENT SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END ELSE_IF_BLOCKS:c RW_ELSE STATEMENT:d SEMICOLON
+    {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(d);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, c), statementAsList, aleft, aright);
+    :}
 
   // if (exp) then begin {statements;} end else if ... else begin {statements;} end;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END ELSE_IF_BLOCKS RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END ELSE_IF_BLOCKS:c RW_ELSE RW_BEGIN PROGRAM_BODY:d RW_END SEMICOLON
+    {:
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, b, c), d, aleft, aright);
+    :}
 
   // if (exp) then statement else if ... else begin {statements;} end;
-  | RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT ELSE_IF_BLOCKS RW_ELSE RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+  | RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b ELSE_IF_BLOCKS:c RW_ELSE RW_BEGIN PROGRAM_BODY:d RW_END SEMICOLON
+    {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+    RESULT = new IfStatement(IfStatement.buildConditionBlockList(a, statementAsList, c), d, aleft, aright);
+    :}
 
 //</editor-fold>
 ;
 
-ELSE_IF_BLOCKS ::= ELSE_IF_BLOCKS ELSE_IF_BLOCK
-                 | ELSE_IF_BLOCK
+ELSE_IF_BLOCKS ::= ELSE_IF_BLOCKS:a ELSE_IF_BLOCK:b {: RESULT = a; a.add(b); :}
+                 | ELSE_IF_BLOCK:b {: RESULT = new LinkedList<>(); RESULT.add(b); :}
 //                 | /* empty */
                  ;
 
-ELSE_IF_BLOCK ::= RW_ELSE RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN STATEMENT {: System.out.println("ELSE IF BLOCK"); :} %prec RW_ELSE
-                | RW_ELSE RW_IF OPENPAR EXPRESSION CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY RW_END  {: System.out.println("ELSE IF BLOCK"); :}%prec RW_ELSE
-                ;
+ELSE_IF_BLOCK ::= RW_ELSE RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN STATEMENT:b {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+    RESULT = new IfStatement.ConditionBlock(a, statementAsList);
+ :} %prec RW_ELSE
+    | RW_ELSE RW_IF OPENPAR EXPRESSION:a CLOSEPAR RW_THEN RW_BEGIN PROGRAM_BODY:b RW_END  {:
+        RESULT = new IfStatement.ConditionBlock(a, b);
+     :}%prec RW_ELSE
+    ;
 
 /*
 case statements
@@ -434,16 +508,45 @@ FOR_STATEMENT ::= RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO STATE
 * function and procedure declarations
 */
 
-FUNCTION_DECLARATION_BLOCK ::= FUNCTION_DECLARATION_START DECLARATIONS_BLOCK RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
-                             ;
 
-FUNCTION_DECLARATION_START ::= RW_FUNCTION ID OPENPAR PARAMETERS_DECLARATION CLOSEPAR COLON TYPE SEMICOLON
+FUNCTION_DECLARATION_START ::=
+    RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON TYPE:c SEMICOLON {: RESULT = new Object[]{a, b, c}; :}
+  | RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON ID:c SEMICOLON {: RESULT = new Object[]{a, b, c}; :}
+  // no params
+    | RW_FUNCTION ID:a COLON TYPE:b SEMICOLON {: RESULT = new Object[]{a, new LinkedList<>(), b}; :}
 ;
 
-PROCEDURE_DECLARATION_BLOCK ::= PROCEDURE_DECLARATION_START DECLARATIONS_BLOCK RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
-                             ;
+// constructor: int typeId, int line, int column, String id, LinkedList<HashMap> params, LinkedList<Statement> header, LinkedList<Statement> methodBody, String returnTypeName, String returnTypeId
+FUNCTION_DECLARATION_BLOCK ::= FUNCTION_DECLARATION_START:a DECLARATIONS_BLOCK:b RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON
+{:
+var allHeaderStatements = new LinkedList<Statement>();
+var typesList = (LinkedList<TypeDeclaration>)b[0];
+var constsList = (LinkedList<Statement>)b[1];
+var varsList = (LinkedList<Statement>)b[2];
+if (typesList == null) typesList = new LinkedList<>();
+if (constsList == null) constsList = new LinkedList<>();
+if (varsList == null) varsList = new LinkedList<>();
+allHeaderStatements.addAll(typesList);
+allHeaderStatements.addAll(constsList);
+allHeaderStatements.addAll(varsList);
+
+//RESULT = new MethodDeclaration(
+//    -1, // typeId
+//     aleft, // line
+//     aright, // column
+//     (String)a[0], // id
+//     (LinkedList<HashMap>)a[1], // params
+//     allHeaderStatements, // header
+//     (LinkedList<Statement>)c, // methodBody
+//     (String)a[2], // returnTypeName
+//      -1);
+   :}
+;
+
 
 PROCEDURE_DECLARATION_START ::= RW_PROCEDURE ID OPENPAR PARAMETERS_DECLARATION CLOSEPAR SEMICOLON
+;
+PROCEDURE_DECLARATION_BLOCK ::= PROCEDURE_DECLARATION_START DECLARATIONS_BLOCK RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
 ;
 
 /*
@@ -451,23 +554,26 @@ parameters, examples:
 
 argument0: type1; argument1, argument2: type2; ...
 */
-PARAMETERS_DECLARATION ::= PARAMETERS_DECLARATION SEMICOLON PARAMETER_DECLARATION
-                         | PARAMETER_DECLARATION
+PARAMETERS_DECLARATION ::= PARAMETERS_DECLARATION:a SEMICOLON PARAMETER_DECLARATION:b {: RESULT = a; a.add(b); :}
+                         | PARAMETER_DECLARATION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
                          ;
 
 PARAMETER_DECLARATION ::=
                         // By value
-                        IDENTIFIER_LIST COLON TYPE
-                        | IDENTIFIER_LIST COLON ARRAY_TYPE
-                        | IDENTIFIER_LIST COLON RANGE_DEF
-                        | IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+                        IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); :}
+                        | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
+                        | IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
+//                        | IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+                        | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
 
                         // By reference
-                        | RW_VAR IDENTIFIER_LIST COLON TYPE
-                        | RW_VAR IDENTIFIER_LIST COLON ARRAY_TYPE
-                        | RW_VAR IDENTIFIER_LIST COLON RANGE_DEF
-                        | RW_VAR IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+                        | RW_VAR IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); :}
+                        | RW_VAR IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
+                        | RW_VAR IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
+//                        | RW_VAR IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+                        | RW_VAR IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
                         ;
+
 /*
 * functions/procedures calls
 */
@@ -496,31 +602,44 @@ READLN_CALL ::= RW_READLN OPENPAR CALL_ARGUMENTS CLOSEPAR
 expressions handling
 */
 
-EXPRESSION ::= ID
+EXPRESSION ::=
+             // Primitive values
+             ID:a {: RESULT = new SymbolAccess(a, aleft, aright); :}
              | INTEGER:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.INTEGER.id, Integer.parseInt(a)); :}
              | DECIMAL:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.REAL.id, Double.parseDouble(a)); :}
              | CHAR:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.CHARACTER.id, (int)a.charAt(0)); :}
              | STRING:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.STRING.id, a); :}
              | RW_TRUE:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.BOOLEAN.id, true); :}
              | RW_FALSE:a {: RESULT = new Primitive(aleft, aright, TypesTable.DefaultTypes.BOOLEAN.id, false); :}
-             | EXPRESSION PLUS EXPRESSION
-             | EXPRESSION MINUS EXPRESSION
-             | EXPRESSION ASTERISK EXPRESSION
-             | EXPRESSION RW_DIV EXPRESSION
-             | EXPRESSION RW_MOD EXPRESSION
-             | MINUS EXPRESSION %prec UNIT_MINUS
-             | RW_NOT EXPRESSION %prec RW_NOT
-             | EXPRESSION EQUALS EXPRESSION
-             | EXPRESSION LESS EXPRESSION
-             | EXPRESSION GREATER EXPRESSION
-             | EXPRESSION LESSEQUAL EXPRESSION
-             | EXPRESSION GREATEREQUAL EXPRESSION
-             | EXPRESSION LTGT EXPRESSION
-             | EXPRESSION RW_AND EXPRESSION %prec RW_AND
-             | EXPRESSION RW_OR EXPRESSION %prec RW_OR
-             | EXPRESSION RW_AND_THEN EXPRESSION %prec RW_AND_THEN
-             | EXPRESSION RW_OR_ELSE EXPRESSION %prec RW_OR_ELSE
+
+             // Arithmetic operations
+             | EXPRESSION:a PLUS EXPRESSION:b {: RESULT = new Arithmetic(a, b, ArithmeticOperators.SUM, aleft, aright); :}
+             | EXPRESSION:a MINUS EXPRESSION:b {: RESULT = new Arithmetic(a, b, ArithmeticOperators.SUB, aleft, aright); :}
+             | EXPRESSION:a ASTERISK EXPRESSION:b {: RESULT = new Arithmetic(a, b, ArithmeticOperators.MUL, aleft, aright); :}
+             | EXPRESSION:a RW_DIV EXPRESSION:b {: RESULT = new Arithmetic(a, b, ArithmeticOperators.DIV, aleft, aright); :}
+             | EXPRESSION:a RW_MOD EXPRESSION:b {: RESULT = new Arithmetic(a, b, ArithmeticOperators.MOD, aleft, aright); :}
+
+             | MINUS EXPRESSION:a {: RESULT = new Arithmetic(a, ArithmeticOperators.NEG, aleft, aright); :} %prec UNIT_MINUS
+
+             // Logical operations
+             | RW_NOT EXPRESSION:a {: RESULT = new Logical(a, LogicalOperators.NOT, aleft, aright); :} %prec RW_NOT
+             | EXPRESSION:a RW_AND EXPRESSION:b {: RESULT = new Logical(a, b, LogicalOperators.AND, aleft, aright); :} %prec RW_AND
+             | EXPRESSION:a RW_OR EXPRESSION:b {: RESULT = new Logical(a, b, LogicalOperators.OR, aleft, aright); :} %prec RW_OR
+             | EXPRESSION:a RW_AND_THEN EXPRESSION:b {: RESULT = new Logical(a, b, LogicalOperators.ANDTHEN, aleft, aright); :} %prec RW_AND_THEN
+             | EXPRESSION:a RW_OR_ELSE EXPRESSION:b {: RESULT = new Logical(a, b, LogicalOperators.ORELSE, aleft, aright); :} %prec RW_OR_ELSE
+
+             // Comparison operations
+             | EXPRESSION:a EQUALS EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.EQUALS, aleft, aright); :}
+             | EXPRESSION:a LESS EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.LESS, aleft, aright); :}
+             | EXPRESSION:a GREATER EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.GREATER, aleft, aright); :}
+             | EXPRESSION:a LESSEQUAL EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.LESS_EQUALS, aleft, aright); :}
+             | EXPRESSION:a GREATEREQUAL EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.GREATER_EQUALS, aleft, aright); :}
+             | EXPRESSION:a LTGT EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.NOT_EQUALS, aleft, aright); :}
+
+             // Call to method
              | CALL_TO_METHOD
+
+             // Parenthesis
              | OPENPAR EXPRESSION:a CLOSEPAR {: RESULT = a; :}
              ;
 

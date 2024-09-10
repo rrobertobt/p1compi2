@@ -9,12 +9,20 @@ public class Program {
     private LinkedList<Statement> headerStatements;
     private LinkedList<Statement> methodsStatements;
     private LinkedList<Statement> bodyStatements;
+    private LinkedList<Statement> allStatements;
 
-    public Program(String name) {
-        this.name = name;
+    public Program(ProgramHeader header, LinkedList<Statement> methodsStatements, LinkedList<Statement> bodyStatements) {
+        this.name = header.getName();
         this.headerStatements = new LinkedList<>();
         this.methodsStatements = new LinkedList<>();
-        this.bodyStatements = new LinkedList<>();
+        this.bodyStatements = bodyStatements;
+
+        this.headerStatements.addAll(header.getStatements());
+
+        this.allStatements = new LinkedList<>();
+        this.allStatements.addAll(header.getStatements());
+        this.allStatements.addAll(this.methodsStatements);
+        this.allStatements.addAll(this.bodyStatements);
     }
 
     public String getName() {
@@ -31,6 +39,10 @@ public class Program {
 
     public LinkedList<Statement> getBodyStatements() {
         return bodyStatements;
+    }
+
+    public LinkedList<Statement> getAllStatements() {
+        return allStatements;
     }
 
     public static class ProgramHeader {

@@ -8,7 +8,7 @@ public class TypesTable {
     private HashMap<String, Object> types;
     private LinkedList<TypesTable> childrenTables;
     private String name;
-    private int idCounter;
+    private int idCounter = 5;
 
     public TypesTable(String name) {
         this.parentTable = null;
@@ -36,6 +36,15 @@ public class TypesTable {
         for (TypesTable table = this; table != null; table = table.getParentTable()) {
             TypeTableEntry type = (TypeTableEntry) table.types.get(name.toLowerCase());
             if (type != null) return type;
+        }
+        return null;
+    }
+
+    public TypeTableEntry getType(int id) {
+        for (TypesTable table = this; table != null; table = table.getParentTable()) {
+            for (Object type : table.types.values()) {
+                if (((TypeTableEntry) type).id == id) return (TypeTableEntry) type;
+            }
         }
         return null;
     }
@@ -75,6 +84,14 @@ public class TypesTable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isPrimitiveType(TypeTableEntry type) {
+        return type.id <= DefaultTypes.STRING.id;
+    }
+
+    public TypeTableEntry getParentType(TypeTableEntry type) {
+        return this.getType(type.parentTypeId);
     }
 
     public static class TypeTableEntry {
@@ -197,6 +214,15 @@ public class TypesTable {
         DefaultTypes(int id) {
             this.id = id;
         }
+    }
+
+    public class DefaultIds {
+        public static final int VOID = 0;
+        public static final int INTEGER = 1;
+        public static final int REAL = 2;
+        public static final int CHARACTER = 3;
+        public static final int BOOLEAN = 4;
+        public static final int STRING = 5;
     }
 
 }

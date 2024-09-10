@@ -6,10 +6,10 @@ import edu.robertob.p1compi2.analysis.PParser;
 import edu.robertob.p1compi2.data.CurrentSession;
 import edu.robertob.p1compi2.data.PFile;
 import edu.robertob.p1compi2.engine.base.Statement;
-import edu.robertob.p1compi2.engine.structs.PError;
-import edu.robertob.p1compi2.engine.structs.SymbolTable;
-import edu.robertob.p1compi2.engine.structs.Tree;
-import edu.robertob.p1compi2.engine.structs.TypesTable;
+import edu.robertob.p1compi2.engine.statements.ConstantDeclaration;
+import edu.robertob.p1compi2.engine.statements.TypeDeclaration;
+import edu.robertob.p1compi2.engine.statements.VariableDeclaration;
+import edu.robertob.p1compi2.engine.structs.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -47,6 +47,7 @@ public class MainFrame extends JFrame {
 //        jTextPane1.setFont(new Font("JetBrainsMono Nerd Font", Font.PLAIN, 14));
         jTextPane1.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 14));
         jSplitPane2.setDividerLocation(0.5);
+        jSplitPane2.setResizeWeight(0.5);
     }
 
     /**
@@ -62,6 +63,7 @@ public class MainFrame extends JFrame {
         newFileBtn = new javax.swing.JButton();
         openFileBtn = new javax.swing.JButton();
         saveFileBtn = new javax.swing.JButton();
+        saveAsFileBtn = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         runCodeBtn = new javax.swing.JButton();
         fileStatusLabel = new javax.swing.JLabel();
@@ -79,7 +81,7 @@ public class MainFrame extends JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(252, 252, 252));
-        setPreferredSize(new java.awt.Dimension(1350, 850));
+        setPreferredSize(new java.awt.Dimension(800, 800));
 
         jToolBar2.setBackground(new java.awt.Color(255, 255, 255));
         jToolBar2.setBorderPainted(false);
@@ -110,7 +112,7 @@ public class MainFrame extends JFrame {
         jToolBar2.add(openFileBtn);
 
         saveFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.png"))); // NOI18N
-        saveFileBtn.setText("Guardar archivo");
+        saveFileBtn.setText("Guardar");
         saveFileBtn.setEnabled(false);
         saveFileBtn.setFocusable(false);
         saveFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -122,6 +124,19 @@ public class MainFrame extends JFrame {
         });
         jToolBar2.add(saveFileBtn);
 
+        saveAsFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-download.png"))); // NOI18N
+        saveAsFileBtn.setText("Guardar como...");
+        saveAsFileBtn.setEnabled(false);
+        saveAsFileBtn.setFocusable(false);
+        saveAsFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        saveAsFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        saveAsFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveAsFileBtnActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(saveAsFileBtn);
+
         jSeparator2.setBackground(new java.awt.Color(204, 204, 204));
         jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
         jSeparator2.setOpaque(true);
@@ -129,7 +144,7 @@ public class MainFrame extends JFrame {
         jToolBar2.add(jSeparator2);
 
         runCodeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
-        runCodeBtn.setText("Ejecutar");
+        runCodeBtn.setText("Analizar");
         runCodeBtn.setEnabled(false);
         runCodeBtn.setFocusable(false);
         runCodeBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -262,8 +277,8 @@ public class MainFrame extends JFrame {
         jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
         fileStatusLabel.setText("Modificado");
         fileStatusLabel.setFont(fileStatusLabel.getFont().deriveFont(Font.BOLD));
-        switchTabAndSetDocumentListener(sessionFile, textPane);
 //        switchTabAndSetDocumentListener(sessionFile, textPane);
+        switchTabAndSetDocumentListener(sessionFile, textPane);
     }//GEN-LAST:event_newFileBtnActionPerformed
 
     private void switchTabAndSetDocumentListener( PFile sessionFile, JTextArea textArea) {
@@ -398,6 +413,7 @@ public class MainFrame extends JFrame {
             fileStatusLabel.setText("");
             jTextPane1.setText("");
             saveFileBtn.setEnabled(false);
+            saveAsFileBtn.setEnabled(false);
             runCodeBtn.setEnabled(false);
             reportsMenu.setEnabled(false);
             return;
@@ -414,6 +430,7 @@ public class MainFrame extends JFrame {
             jTabbedPane1.setTitleAt(currentSession.getActiveFileIndex(), "*" + currentSession.getActiveFile().getName());
         }
         saveFileBtn.setEnabled(true);
+        saveAsFileBtn.setEnabled(true);
         runCodeBtn.setEnabled(true);
         reportsMenu.setEnabled(true);
     }//GEN-LAST:event_jTabbedPane1StateChanged
@@ -423,13 +440,13 @@ public class MainFrame extends JFrame {
         if (activeFile != null) {
             if (!activeFile.isNew()) {
                 activeFile.setSaved(true);
-                activeFile.saveFile(activeFile.getContent());
+                activeFile.saveFile(activeFile.getContent(), false);
                 fileStatusLabel.setText("Guardado");
                 jTabbedPane1.setTitleAt(currentSession.getActiveFileIndex(), activeFile.getName());
                 fileStatusLabel.setFont(fileStatusLabel.getFont().deriveFont(Font.PLAIN));
             } else {
                 var fileChooser = new JFileChooser();
-                fileChooser.setSelectedFile(new File(activeFile.getName() + ".jc"));
+                fileChooser.setSelectedFile(new File(activeFile.getName() + ".p"));
                 var result = fileChooser.showSaveDialog(this);
                 // also set the default file name to the current file name
                 if (result == JFileChooser.APPROVE_OPTION) {
@@ -438,13 +455,13 @@ public class MainFrame extends JFrame {
                     activeFile.setSystemPath(path);
                     activeFile.setIsNew(false);
                     activeFile.setSaved(true);
-                    activeFile.saveFile(activeFile.getContent());
+                    boolean created = activeFile.saveFile(activeFile.getContent(), true);
+                    if (!created) return;
                     fileStatusLabel.setText("Guardado");
                     fileStatusLabel.setFont(fileStatusLabel.getFont().deriveFont(Font.PLAIN));
                     jTabbedPane1.setTitleAt(currentSession.getActiveFileIndex(), file.getName());
                 }
             }
-
         }
     }//GEN-LAST:event_saveFileBtnActionPerformed
 
@@ -457,20 +474,49 @@ public class MainFrame extends JFrame {
         LinkedList<PError> allErrors = new LinkedList<>();
 
         // Create the tables (types, symbols)
-        TypesTable typesTable = new TypesTable("Global");
-        typesTable.fillDefaultTypes();
+
         try {
             var parserResult = parser.parse();
-            var tree = new Tree((LinkedList<Statement>) parserResult.value);
+            TypesTable typesTable = new TypesTable("Global");
+            typesTable.fillDefaultTypes();
+            var tree = new Tree(((Program) parserResult.value).getAllStatements());
             var globalTable = new SymbolTable("Global");
             tree.setGlobalTable(globalTable);
+            currentSession.getActiveFile().setCurrentTree(tree);
 
             //todo: 3 passes through the tree (when methods are implemented):
             // 1. get all the functions and their parameters, also structs
             // 2. get all the variables and their types
-            // 3. execute the instructions with the START_WITH instruction
+            // 3. execute the body of the main block
 
+            for (Statement statement : tree.getStatements()) {
+                if (statement == null) continue;
 
+                if (statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) {
+                    var result = statement.execute(tree, globalTable, typesTable);
+                    if (result instanceof PError) {
+                        allErrors.add((PError) result);
+                    }
+                }
+            }
+
+            //
+            for (Statement statement : tree.getStatements()){
+                if (statement == null) continue;
+                if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
+                    System.out.println(statement);
+                    var result = statement.execute(tree, globalTable, typesTable);
+                    if (result instanceof PError) {
+                        allErrors.add((PError) result);
+                    }
+                }
+            }
+
+            // testing, print the types table
+//            for (var entry : typesTable.getTypes().entrySet()) {
+//                System.out.println(entry.getKey() + " -> " + entry.getValue());
+//            }
+//            jTextPane1.setText(tree);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -487,7 +533,7 @@ public class MainFrame extends JFrame {
                 jTextPane1.setText(jTextPane1.getText() + error.toString() + "\n");
             }
         }
-//        currentSession.getActiveFile().setConsoleOutput(jTextPane1.getText());
+        currentSession.getActiveFile().setConsoleOutput(jTextPane1.getText());
     }//GEN-LAST:event_runCodeBtnActionPerformed
 
 //    private void errorsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_errorsMenuItemActionPerformed
@@ -504,6 +550,71 @@ public class MainFrame extends JFrame {
 //            symbolsReportFrame.setSymbolTableAndShow(activeFile.getGlobalTable());
 //        }
 //    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void saveAsFileBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsFileBtnActionPerformed
+        var activeFile = currentSession.getActiveFile();
+        if (activeFile != null) {
+            if (!activeFile.isNew()) {
+                var fileChooser = new JFileChooser();
+                fileChooser.setSelectedFile(new File(activeFile.getName()));
+                var result = fileChooser.showSaveDialog(this);
+
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    var file = fileChooser.getSelectedFile();
+                    var path = file.getAbsolutePath();
+                    var newSessionFile = new PFile(file.getName(), path, activeFile.getContent(), true, false, jTabbedPane1.getTabCount());
+                    boolean saved = newSessionFile.saveFile(newSessionFile.getContent(), true);
+                    if (!saved) return;
+                    currentSession.addFile(newSessionFile);
+
+                    try {
+                        var reader = new BufferedReader(new FileReader(path));
+                        var line = reader.readLine();
+                        var content = "";
+                        while (line != null) {
+                            content += line + "\n";
+                            line = reader.readLine();
+                        }
+                        if (content.length() > 0) content = content.substring(0, content.length() - 1);
+                        newSessionFile.setContent(content);
+                        reader.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    var textPane = new JTextPane();
+                    textPane.setText(newSessionFile.getContent());
+                    var scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                    var tln = new TextLineNumber(textPane, 3);
+                    scrollPane.setRowHeaderView(tln);
+
+                    textPane.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 15));
+
+                    jTabbedPane1.add(newSessionFile.getName(), scrollPane);
+                    jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
+                    currentSession.setActiveFile(jTabbedPane1.getTabCount() - 1);
+                    switchTabAndSetDocumentListener(newSessionFile, textPane);
+                }
+            } else {
+                var fileChooser = new JFileChooser();
+                fileChooser.setSelectedFile(new File(activeFile.getName() + ".p"));
+                var result = fileChooser.showSaveDialog(this);
+                // also set the default file name to the current file name
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    var file = fileChooser.getSelectedFile();
+                    var path = file.getAbsolutePath();
+                    activeFile.setSystemPath(path);
+                    activeFile.setIsNew(false);
+                    activeFile.setSaved(true);
+                    boolean created = activeFile.saveFile(activeFile.getContent(), true);
+                    if (!created) return;
+                    fileStatusLabel.setText("Guardado");
+                    fileStatusLabel.setFont(fileStatusLabel.getFont().deriveFont(Font.PLAIN));
+                    jTabbedPane1.setTitleAt(currentSession.getActiveFileIndex(), file.getName());
+                }
+            }
+        }
+    }//GEN-LAST:event_saveAsFileBtnActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -524,6 +635,7 @@ public class MainFrame extends JFrame {
     private javax.swing.JButton openFileBtn;
     private javax.swing.JMenu reportsMenu;
     private javax.swing.JButton runCodeBtn;
+    private javax.swing.JButton saveAsFileBtn;
     private javax.swing.JButton saveFileBtn;
     // End of variables declaration//GEN-END:variables
 }

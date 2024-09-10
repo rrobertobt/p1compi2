@@ -39,4 +39,12 @@ public abstract class Statement {
     public int getColumn() {
         return column;
     }
+
+    public int getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(int typeId) {
+        this.typeId = typeId;
+    }
 }

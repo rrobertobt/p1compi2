@@ -6,7 +6,9 @@ package edu.robertob.p1compi2.data;
 
 import edu.robertob.p1compi2.engine.structs.PError;
 import edu.robertob.p1compi2.engine.structs.SymbolTable;
+import edu.robertob.p1compi2.engine.structs.Tree;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,7 +29,7 @@ public class PFile {
     private String consoleOutput;
     private LinkedList<PError> errors = new LinkedList<>();
     private SymbolTable globalTable;
-//    private Tree currentTree;
+    private Tree currentTree;
 
     public PFile(String name, String systemPath, String content, boolean saved, int index) {
         this.name = name;
@@ -46,8 +48,16 @@ public class PFile {
         this.index = index;
     }
 
-    public void saveFile(String content) {
-        // Guardar el archivo en el sistema usando el systemPath
+    public boolean saveFile(String content, boolean checkIfExists) {
+        // save the file in the system using the systemPath
+        if (checkIfExists) {
+            File file = new File(this.systemPath);
+            if (file.exists()) {
+                JOptionPane.showMessageDialog(null, "El archivo ya existe en el sistema", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+
         this.content = content;
         this.saved = true;
         File file = new File(this.systemPath);
@@ -55,8 +65,10 @@ public class PFile {
             FileWriter writer = new FileWriter(file);
             writer.write(content);
             writer.close();
-        } catch (IOException e) {
+            return true;
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -132,11 +144,11 @@ public class PFile {
         return this.globalTable;
     }
 
-//    public void setCurrentTree(Tree tree) {
-//        this.currentTree = tree;
-//    }
-//
-//    public Tree getCurrentTree() {
-//        return this.currentTree;
-//    }
+    public void setCurrentTree(Tree tree) {
+        this.currentTree = tree;
+    }
+
+    public Tree getCurrentTree() {
+        return this.currentTree;
+    }
 }

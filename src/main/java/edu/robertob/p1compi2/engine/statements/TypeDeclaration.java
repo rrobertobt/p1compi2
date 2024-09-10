@@ -13,6 +13,7 @@ public class TypeDeclaration extends Statement {
     private LinkedList<String> names;
     private String scopeName;
     private int parentTypeId;
+    private String parentTypeName;
     private boolean isArray;
     private boolean isRange;
     private boolean isRecord;
@@ -32,10 +33,23 @@ public class TypeDeclaration extends Statement {
         this.end = end;
     }
 
+    public TypeDeclaration(int line, int column, LinkedList<String> names, String parentTypeName, boolean isArray, boolean isRange, boolean isRecord, int size, int start, int end) {
+        super(-1, line, column);
+        this.names = names;
+        this.parentTypeName = parentTypeName;
+        this.isArray = isArray;
+        this.isRange = isRange;
+        this.isRecord = isRecord;
+        this.size = size;
+        this.start = start;
+        this.end = end;
+    }
+
+
 
     @Override
     public Object execute(Tree tree, SymbolTable table, TypesTable typesTable) {
-        if (!isArray && !isRange && !isRecord) {
+        if (!isArray && !isRange && !isRecord && (parentTypeName == null)) {
             for (String name : names) {
                 var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, null, null);
                 boolean created = typesTable.setType(newType);
@@ -43,7 +57,24 @@ public class TypeDeclaration extends Statement {
                     return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
                 }
             }
+        } else if (!isArray && !isRange && !isRecord && (parentTypeName != null)) {
+            for (String name : names) {
+                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, typesTable.getType(parentTypeName).id, size, isArray, isRecord, isRange, null, null);
+                boolean created = typesTable.setType(newType);
+                if (!created) {
+                    return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
+                }
+            }
         }
+//        else if (isArray || isRange) {
+//            for (String name : names) {
+//                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, start, end);
+//                boolean created = typesTable.setType(newType);
+//                if (!created) {
+//                    return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
+//                }
+//            }
+//        }
 //        if (isArray || isRange) {
 //            var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, start, end);
 //            boolean created = typesTable.setType(newType);
