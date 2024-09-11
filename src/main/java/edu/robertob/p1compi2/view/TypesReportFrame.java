@@ -9,6 +9,7 @@ import edu.robertob.p1compi2.engine.structs.SymbolTable;
 import edu.robertob.p1compi2.engine.structs.SymbolVariable;
 import edu.robertob.p1compi2.engine.structs.TypesTable;
 
+import javax.swing.*;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,6 +209,10 @@ public class TypesReportFrame extends javax.swing.JFrame {
             }
         }
 
+        if (typesTable == null) {
+            JOptionPane.showMessageDialog(this, "No hay tabla de tipos para mostrar", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        };
         var allTypes = typesTable.collectAllEntries();
 
         // before entering into the table, order them by id

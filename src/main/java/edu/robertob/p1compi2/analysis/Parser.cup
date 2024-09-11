@@ -101,14 +101,15 @@ nonterminal Statement WHILE_STATEMENT, REPEAT_STATEMENT, FOR_STATEMENT;
 nonterminal Statement FUNCTION_DECLARATION_BLOCK;
 nonterminal Object[] FUNCTION_DECLARATION_START;
 nonterminal LinkedList<HashMap> PARAMETERS_DECLARATION;
-nonterminal HashMap<String, Object> PARAMETER_DECLARATION;
+//nonterminal HashMap<String, Object> PARAMETER_DECLARATION;
 nonterminal Statement PROCEDURE_DECLARATION_BLOCK;
 nonterminal Object[] PROCEDURE_DECLARATION_START;
 nonterminal Statement WRITELN_CALL, READLN_CALL;
 nonterminal Statement PROCEDURE_FUNCTION_DECLARATION;
 nonterminal LinkedList<Statement> PROCEDURE_FUNCTION_DECLARATIONS;
 
-nonterminal Statement CALL_TO_METHOD, CALL_ARGUMENTS, ARGUMENT;
+nonterminal Statement CALL_TO_METHOD, ARGUMENT;
+nonterminal LinkedList<Statement> CALL_ARGUMENTS;
 
 // Precedence: not > and > or > or else, and then
 precedence left RW_OR_ELSE, RW_AND_THEN;
@@ -130,21 +131,25 @@ START ::= PROGRAM:a DOT {: RESULT = a; :}
 PROGRAM ::=
     // with functions and body
     PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS:c RW_BEGIN PROGRAM_BODY:b RW_END {:
+        System.out.println("c"+c);
         RESULT = new Program(a,c,b);
     :}
     // only body
     |
     PROGRAM_HEADER:a RW_BEGIN PROGRAM_BODY:b RW_END {:
+    System.out.println("c");
         RESULT = new Program(a,null,b);
     :}
     |
     // only functions
     PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS:c RW_BEGIN RW_END {:
+    System.out.println("c"+c);
         RESULT = new Program(a,c,null);
     :}
     |
     // no functions, no body
     PROGRAM_HEADER:a RW_BEGIN RW_END {:
+    System.out.println("c");
         RESULT = new Program(a,null,null);
     :}
 ;
@@ -153,8 +158,8 @@ PROCEDURE_FUNCTION_DECLARATIONS ::= PROCEDURE_FUNCTION_DECLARATIONS:a PROCEDURE_
                                   | PROCEDURE_FUNCTION_DECLARATION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
                                   ;
 
-PROCEDURE_FUNCTION_DECLARATION ::= FUNCTION_DECLARATION_BLOCK:a {: RESULT = a; :}
-                            | PROCEDURE_DECLARATION_BLOCK
+PROCEDURE_FUNCTION_DECLARATION ::= FUNCTION_DECLARATION_BLOCK:a {: RESULT = a; System.out.println("a:"+a); :}
+                            | PROCEDURE_DECLARATION_BLOCK:a {: RESULT = a;  System.out.println("a: "+a);:}
                             ;
 
 PROGRAM_HEADER ::=
@@ -182,7 +187,6 @@ DECLARATIONS_BLOCK ::=
                 {:
                 var newTypesList = Program.reverseLinkedList(typesList);
                 RESULT = new Object[]{newTypesList, constsList, varsList};
-                System.out.println("Declarations block: "+typesList.size()+" "+constsList.size()+" "+varsList.size());
                 :}
                 ;
 
@@ -201,7 +205,7 @@ PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
                             | FOR_STATEMENT:a {: RESULT = a; :}
                             | RW_BREAK:a SEMICOLON {: RESULT = new Break(aleft, aright); :}
                             | RW_CONTINUE:a SEMICOLON {: RESULT = new Continue(aleft, aright); :}
-                            | CALL_TO_METHOD SEMICOLON
+                            | CALL_TO_METHOD:a SEMICOLON {: RESULT = a; :}
                             | CASE_STATEMENT
                             | WRITELN_CALL SEMICOLON
                             | READLN_CALL SEMICOLON
@@ -560,8 +564,7 @@ FUNCTION_DECLARATION_START ::=
 ;
 
 // constructor: int typeId, int line, int column, String id, LinkedList<HashMap> params, LinkedList<Statement> header, LinkedList<Statement> methodBody, String returnTypeName, String returnTypeId
-FUNCTION_DECLARATION_BLOCK ::= FUNCTION_DECLARATION_START:a DECLARATIONS_BLOCK:b RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON
-{:
+FUNCTION_DECLARATION_BLOCK ::= FUNCTION_DECLARATION_START:a DECLARATIONS_BLOCK:b RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON {:
 var allHeaderStatements = new LinkedList<Statement>();
 var typesList = (LinkedList<TypeDeclaration>)b[0];
 var constsList = (LinkedList<Statement>)b[1];
@@ -573,6 +576,17 @@ allHeaderStatements.addAll(typesList);
 allHeaderStatements.addAll(constsList);
 allHeaderStatements.addAll(varsList);
 
+String returnTypeName = null;
+int returnTypeId = -1;
+
+if ((int)a[2] == -1) {
+    returnTypeName = (String)a[3];
+} else {
+    returnTypeId = (int)a[2];
+}
+System.out.println("returnTypeName: "+returnTypeName);
+System.out.println("returnTypeId: "+returnTypeId);
+
 RESULT = new FunctionDeclaration(
     0,
     aleft,
@@ -581,16 +595,39 @@ RESULT = new FunctionDeclaration(
     (LinkedList<HashMap>)a[1],
     allHeaderStatements,
     c,
-    (String)a[2],
-    (int)a[3]
-    );
+    returnTypeName,
+    returnTypeId
+);
    :}
 ;
 
 
-PROCEDURE_DECLARATION_START ::= RW_PROCEDURE ID OPENPAR PARAMETERS_DECLARATION CLOSEPAR SEMICOLON
+PROCEDURE_DECLARATION_START ::= RW_PROCEDURE ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR SEMICOLON {:
+    RESULT = new Object[]{a, b};
+:}
 ;
-PROCEDURE_DECLARATION_BLOCK ::= PROCEDURE_DECLARATION_START DECLARATIONS_BLOCK RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+PROCEDURE_DECLARATION_BLOCK ::= PROCEDURE_DECLARATION_START:a DECLARATIONS_BLOCK:b RW_BEGIN PROGRAM_BODY:c RW_END SEMICOLON {:
+    var allHeaderStatements = new LinkedList<Statement>();
+    var typesList = (LinkedList<TypeDeclaration>)b[0];
+    var constsList = (LinkedList<Statement>)b[1];
+    var varsList = (LinkedList<Statement>)b[2];
+    if (typesList == null) typesList = new LinkedList<>();
+    if (constsList == null) constsList = new LinkedList<>();
+    if (varsList == null) varsList = new LinkedList<>();
+    allHeaderStatements.addAll(typesList);
+    allHeaderStatements.addAll(constsList);
+    allHeaderStatements.addAll(varsList);
+
+    RESULT = new ProcedureDeclaration(
+        0,
+        aleft,
+        aright,
+        (String)a[0],
+        (LinkedList<HashMap>)a[1],
+        allHeaderStatements,
+        c
+    );
+:}
 ;
 
 /*
@@ -598,36 +635,94 @@ parameters, examples:
 
 argument0: type1; argument1, argument2: type2; ...
 */
-PARAMETERS_DECLARATION ::= PARAMETERS_DECLARATION:a SEMICOLON PARAMETER_DECLARATION:b {: RESULT = a; a.add(b); :}
-                         | PARAMETER_DECLARATION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
-                         ;
+//PARAMETERS_DECLARATION ::= PARAMETERS_DECLARATION:a SEMICOLON PARAMETER_DECLARATION:b {: RESULT = a; a.add(b); :}
+//                         | PARAMETER_DECLARATION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+//                         ;
 
-PARAMETER_DECLARATION ::=
-                        // By value
-                        IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); :}
-                        | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
-                        | IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
-//                        | IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
-                        | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
-
-                        // By reference
-                        | RW_VAR IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); :}
-                        | RW_VAR IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
-                        | RW_VAR IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
-//                        | RW_VAR IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
-                        | RW_VAR IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
+PARAMETERS_DECLARATION ::= PARAMETERS_DECLARATION:a SEMICOLON IDENTIFIER_LIST:b COLON TYPE:c {:
+                            RESULT = a;
+                            for (String id:b) {
+                                System.out.println("id: "+id);
+                                HashMap<String, Object> param = new HashMap<>();
+                                param.put("byRef", false);
+                                param.put("id", id);
+                                param.put("type", c);
+                                RESULT.add(param);
+                            }
+                        :}
+                        | PARAMETERS_DECLARATION:a SEMICOLON RW_VAR IDENTIFIER_LIST:b COLON TYPE:c {:
+                              RESULT = a;
+                              for (String id:b) {
+                              System.out.println("id: "+id);
+                                  HashMap<String, Object> param = new HashMap<>();
+                                  param.put("byRef", true);
+                                  param.put("id", id);
+                                  param.put("type", c);
+                                  RESULT.add(param);
+                              }
+                          :}
+                        | IDENTIFIER_LIST:b COLON TYPE:c {:
+                            RESULT = new LinkedList<HashMap>();
+                            for (String id:b) {
+                                HashMap<String, Object> param = new HashMap<>();
+                                param.put("byRef", false);
+                                param.put("id", id);
+                                param.put("type", c);
+                                RESULT.add(param);
+                            }
+//                            HashMap<String, Object> param = new HashMap<>();
+//                            param.put("byRef", false);
+//                            param.put("id", b);
+//                            System.out.println("b: "+b);
+//                            param.put("type", c);
+//                            RESULT.add(param);
+                        :}
+                        | RW_VAR IDENTIFIER_LIST:b COLON TYPE:c {:
+                            RESULT = new LinkedList<HashMap>();
+                            for (String id:b) {
+                                HashMap<String, Object> param = new HashMap<>();
+                                param.put("byRef", true);
+                                param.put("id", id);
+                                param.put("type", c);
+                                RESULT.add(param);
+                            }
+//                            HashMap<String, Object> param = new HashMap<>();
+//                            System.out.println("b: "+b);
+//                            param.put("byRef", true);
+//                            param.put("id", b);
+//                            param.put("type", c);
+//                            RESULT.add(param);
+                        :}
                         ;
+
+//PARAMETER_DECLARATION ::=
+//                        // By value
+//                        IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); :}
+////                        | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
+////                        | IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
+//////                        | IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+////                        | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", false); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
+//
+//                        // By reference
+//                        | RW_VAR IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); :}
+////                        | RW_VAR IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b.getParentTypeId()); RESULT.put("isArray", true); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", b.getRangeDefinition()[0]); RESULT.put("maxVal", b.getRangeDefinition()[1]); :}
+////                        | RW_VAR IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", TypesTable.DefaultTypes.INTEGER.id); RESULT.put("isArray", false); RESULT.put("isRange", true); RESULT.put("isRecord", false); RESULT.put("minVal", b[0]); RESULT.put("maxVal", b[1]); :}
+//////                        | RW_VAR IDENTIFIER_LIST COLON /*RW_RECORD*/ ID
+////                        | RW_VAR IDENTIFIER_LIST:a COLON ID:b {: RESULT = new HashMap<>(); RESULT.put("byRef", true); RESULT.put("ids", a); RESULT.put("type", b); RESULT.put("isArray", false); RESULT.put("isRange", false); RESULT.put("isRecord", false); RESULT.put("minVal", null); RESULT.put("maxVal", null); :}
+//                        ;
 
 /*
 * functions/procedures calls
 */
 
-CALL_TO_METHOD ::= ID OPENPAR CALL_ARGUMENTS CLOSEPAR
+CALL_TO_METHOD ::= ID:a OPENPAR CALL_ARGUMENTS:b CLOSEPAR {:
+                RESULT = new MethodCall(a, b, aleft, aright);
+                :}
                  ;
 
-CALL_ARGUMENTS ::= CALL_ARGUMENTS COMMA EXPRESSION
-                | EXPRESSION
-                | /* empty */
+CALL_ARGUMENTS ::= CALL_ARGUMENTS:a COMMA EXPRESSION:b {: RESULT = a; a.add(b); :}
+                | EXPRESSION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+                | /* empty */ {: RESULT = new LinkedList<>(); :}
                 ;
 
 ARGUMENT ::= EXPRESSION
@@ -684,7 +779,7 @@ EXPRESSION ::=
              | ID:a OPENBRACKET EXPRESSION:b CLOSEBRACKET {: RESULT = new ArrayAccess(a, b, aleft, aright); :}
 
              // Call to method
-             | CALL_TO_METHOD
+             | CALL_TO_METHOD:a {: RESULT = a; :}
 
              // Parenthesis
              | OPENPAR EXPRESSION:a CLOSEPAR {: RESULT = a; :}

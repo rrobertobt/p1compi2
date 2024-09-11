@@ -40,24 +40,14 @@ OPENPAR="("
 CLOSEPAR=")"
 PLUS="+"
 MINUS="-"
-UNDERSCORE="_"
 ASTERISK="*"
-DOUBLEASTERISK="**"
 SLASH="/"
-MODULO="%"
 EQUALS="="
-DOUBLEEQUALS="=="
-NEGATION="!"
-EXCLAMATIONEQUALS="!="
 LTGT="<>"
 LESS="<"
 LESSEQUALS="<="
 GREATER=">"
 GREATEREQUALS=">="
-ARROW="=>"
-OR="||"
-AND="&&"
-XOR=\^
 SEMICOLON=";"
 COLON=":"
 COMMA=","
@@ -125,6 +115,8 @@ with
 RW_AND="and"
 RW_ARRAY="array"
 RW_BEGIN="begin"
+RW_BREAK="break"
+RW_CONTINUE="continue"
 RW_CASE="case"
 RW_CONST="const"
 RW_DIV="div"
@@ -187,6 +179,8 @@ RW_READLN="readln"
 <YYINITIAL> {RW_AND} {return new Symbol(sym.RW_AND, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_ARRAY} {return new Symbol(sym.RW_ARRAY, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_BEGIN} {return new Symbol(sym.RW_BEGIN, yyline, yycolumn,yytext());}
+<YYINITIAL> {RW_BREAK} {return new Symbol(sym.RW_BREAK, yyline, yycolumn,yytext());}
+<YYINITIAL> {RW_CONTINUE} {return new Symbol(sym.RW_CONTINUE, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_CASE} {return new Symbol(sym.RW_CASE, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_CONST} {return new Symbol(sym.RW_CONST, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_DIV} {return new Symbol(sym.RW_DIV, yyline, yycolumn,yytext());}
@@ -231,8 +225,8 @@ RW_READLN="readln"
 
 
       <YYINITIAL> {DOT} {return new Symbol(sym.DOT, yyline, yycolumn,yytext());}
-      <YYINITIAL> {UNDERSCORE} {return new Symbol(sym.UNDERSCORE, yyline, yycolumn,yytext());}
-<YYINITIAL> {ARROW} {return new Symbol(sym.ARROW, yyline, yycolumn,yytext());}
+//      <YYINITIAL> {UNDERSCORE} {return new Symbol(sym.UNDERSCORE, yyline, yycolumn,yytext());}
+//<YYINITIAL> {ARROW} {return new Symbol(sym.ARROW, yyline, yycolumn,yytext());}
 <YYINITIAL> {LTGT} {return new Symbol(sym.NOT_EQUALS, yyline, yycolumn,yytext());}
 
 <YYINITIAL> {OPENBRACKET} {return new Symbol(sym.OPENBRACKET, yyline, yycolumn,yytext());}
@@ -267,22 +261,21 @@ RW_READLN="readln"
 
 <YYINITIAL> {PLUS} {return new Symbol(sym.PLUS, yyline, yycolumn,yytext());}
 <YYINITIAL> {MINUS} {return new Symbol(sym.MINUS, yyline, yycolumn,yytext());}
-<YYINITIAL> {DOUBLEASTERISK} {return new Symbol(sym.DOUBLEASTERISK, yyline, yycolumn,yytext());}
+//<YYINITIAL> {DOUBLEASTERISK} {return new Symbol(sym.DOUBLEASTERISK, yyline, yycolumn,yytext());}
 <YYINITIAL> {ASTERISK} {return new Symbol(sym.ASTERISK, yyline, yycolumn,yytext());}
 <YYINITIAL> {SLASH} {return new Symbol(sym.SLASH, yyline, yycolumn,yytext());}
-<YYINITIAL> {MODULO} {return new Symbol(sym.MODULO, yyline, yycolumn,yytext());}
 
-<YYINITIAL> {DOUBLEEQUALS} {return new Symbol(sym.DOUBLEEQUALS, yyline, yycolumn,yytext());}
+//<YYINITIAL> {DOUBLEEQUALS} {return new Symbol(sym.DOUBLEEQUALS, yyline, yycolumn,yytext());}
 
 <YYINITIAL> {EQUALS} {return new Symbol(sym.EQUALS, yyline, yycolumn,yytext());}
 <YYINITIAL> {LESSEQUALS} {return new Symbol(sym.LESSEQUAL, yyline, yycolumn,yytext());}
 <YYINITIAL> {GREATEREQUALS} {return new Symbol(sym.GREATEREQUAL, yyline, yycolumn,yytext());}
 <YYINITIAL> {LESS} {return new Symbol(sym.LESS, yyline, yycolumn,yytext());}
 <YYINITIAL> {GREATER} {return new Symbol(sym.GREATER, yyline, yycolumn,yytext());}
-<YYINITIAL> {EXCLAMATIONEQUALS} {return new Symbol(sym.NOT_EQUALS, yyline, yycolumn,yytext());}
-<YYINITIAL> {NEGATION} {return new Symbol(sym.NEGATION, yyline, yycolumn,yytext());}
-<YYINITIAL> {OR} {return new Symbol(sym.OR, yyline, yycolumn,yytext());}
-<YYINITIAL> {AND} {return new Symbol(sym.AND, yyline, yycolumn,yytext());}
+//<YYINITIAL> {EXCLAMATIONEQUALS} {return new Symbol(sym.NOT_EQUALS, yyline, yycolumn,yytext());}
+//<YYINITIAL> {NEGATION} {return new Symbol(sym.NEGATION, yyline, yycolumn,yytext());}
+//<YYINITIAL> {OR} {return new Symbol(sym.OR, yyline, yycolumn,yytext());}
+//<YYINITIAL> {AND} {return new Symbol(sym.AND, yyline, yycolumn,yytext());}
 
 <YYINITIAL> {BLANKS} {}
 

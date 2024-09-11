@@ -5,9 +5,7 @@ import edu.robertob.p1compi2.analysis.PParser;
 import edu.robertob.p1compi2.data.CurrentSession;
 import edu.robertob.p1compi2.data.PFile;
 import edu.robertob.p1compi2.engine.base.Statement;
-import edu.robertob.p1compi2.engine.statements.ConstantDeclaration;
-import edu.robertob.p1compi2.engine.statements.TypeDeclaration;
-import edu.robertob.p1compi2.engine.statements.VariableDeclaration;
+import edu.robertob.p1compi2.engine.statements.*;
 import edu.robertob.p1compi2.engine.structs.*;
 
 import javax.swing.*;
@@ -549,7 +547,13 @@ public class MainFrame extends JFrame {
         saveAsFileBtn.setEnabled(true);
         runCodeBtn.setEnabled(true);
         analyzeAllCodeBtn.setEnabled(true);
-        reportsMenu.setEnabled(true);
+
+        System.out.println(currentSession.getActiveFile().getErrors().isEmpty() + " " + currentSession.getActiveFile().getName());
+        if (currentSession.getActiveFile().getErrors().isEmpty()) {
+            reportsMenu.setEnabled(true);
+        } else {
+            reportsMenu.setEnabled(false);
+        }
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void saveFileBtnActionPerformed(ActionEvent evt) {//GEN-FIRST:event_saveFileBtnActionPerformed
@@ -621,10 +625,40 @@ public class MainFrame extends JFrame {
                 }
             }
 
+            System.out.println("Tree");
+            for (Statement statement : tree.getStatements()) {
+                System.out.println(statement);
+                if (statement == null) continue;
+
+                if (statement instanceof FunctionDeclaration method) {
+                    System.out.println("in run"+method.getId());
+                    if (method.isReservedMethod()) {
+                        currentSession.getActiveFile().getErrors().add(new PError("Semantica", "No se puede declarar un método con el nombre de una función reservada: " + method.getId(), method.getLine(), method.getColumn()));
+                        allErrors.add(new PError("Semantica", "No se puede declarar un método con el nombre de una función reservada: " + method.getId(), method.getLine(), method.getColumn()));
+                        continue;
+                    }
+                    tree.addFunction(method);
+                    globalTable.addFunction(method);
+                }
+            }
+
+            for (Statement statement : tree.getStatements()) {
+                if (statement == null) continue;
+                if (statement instanceof ProcedureDeclaration procedure) {
+                    if (procedure.isReservedMethod()) {
+                        currentSession.getActiveFile().getErrors().add(new PError("Semantica", "No se puede declarar un procedimiento con el nombre de una función reservada: " + procedure.getId(), procedure.getLine(), procedure.getColumn()));
+                        allErrors.add(new PError("Semantica", "No se puede declarar un procedimiento con el nombre de una función reservada: " + procedure.getId(), procedure.getLine(), procedure.getColumn()));
+                        continue;
+                    }
+                    tree.addProcedure(procedure);
+                    globalTable.addProcedure(procedure);
+                }
+            }
+
             //
             for (Statement statement : tree.getStatements()) {
                 if (statement == null) continue;
-                if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
+                if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) && !(statement instanceof FunctionDeclaration) && !(statement instanceof ProcedureDeclaration)) {
                     var result = statement.execute(tree, globalTable, typesTable);
 //                    if (result instanceof PError) {
 //                        allErrors.add((PError) result);
@@ -643,13 +677,16 @@ public class MainFrame extends JFrame {
         }
         jTextPane1.setText("");
         allErrors.addAll(lexer.getLexicalErrorList());
-        currentSession.getActiveFile().getErrors().addAll(lexer.getLexicalErrorList());
+//        currentSession.getActiveFile().getErrors().addAll(lexer.getLexicalErrorList());
         allErrors.addAll(parser.getSyntaxErrorList());
-        currentSession.getActiveFile().getErrors().addAll(parser.getSyntaxErrorList());
+//        currentSession.getActiveFile().getErrors().addAll(parser.getSyntaxErrorList());
+        currentSession.getActiveFile().getErrors().addAll(allErrors);
         if (allErrors.isEmpty()) {
             jTextPane1.setText(jTextPane1.getText() + "\n✅ -> Analisis completado sin errores\n");
+            reportsMenu.setEnabled(true);
         } else {
             jTextPane1.setText(jTextPane1.getText() + "\n❌ -> Análisis no fue exitoso - Errores encontrados:\n");
+            reportsMenu.setEnabled(false);
             for (PError error : allErrors) {
                 jTextPane1.setText(jTextPane1.getText() + error.toString() + "\n");
             }
@@ -769,6 +806,7 @@ public class MainFrame extends JFrame {
                     if (statement == null) continue;
 
                     if (statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) {
+//                    System.out.println("in run"+((TypeDeclaration)statement).getNames());
                         var result = statement.execute(tree, globalTable, typesTable);
 //                    if (result instanceof PError) {
 //                        allErrors.add((PError) result);
@@ -776,10 +814,40 @@ public class MainFrame extends JFrame {
                     }
                 }
 
+                System.out.println("Tree");
+                for (Statement statement : tree.getStatements()) {
+                    System.out.println(statement);
+                    if (statement == null) continue;
+
+                    if (statement instanceof FunctionDeclaration method) {
+                        System.out.println("in run"+method.getId());
+                        if (method.isReservedMethod()) {
+                            currentSession.getActiveFile().getErrors().add(new PError("Semantica", "No se puede declarar un método con el nombre de una función reservada: " + method.getId(), method.getLine(), method.getColumn()));
+                            allErrors.add(new PError("Semantica", "No se puede declarar un método con el nombre de una función reservada: " + method.getId(), method.getLine(), method.getColumn()));
+                            continue;
+                        }
+                        tree.addFunction(method);
+                        globalTable.addFunction(method);
+                    }
+                }
+
+                for (Statement statement : tree.getStatements()) {
+                    if (statement == null) continue;
+                    if (statement instanceof ProcedureDeclaration procedure) {
+                        if (procedure.isReservedMethod()) {
+                            currentSession.getActiveFile().getErrors().add(new PError("Semantica", "No se puede declarar un procedimiento con el nombre de una función reservada: " + procedure.getId(), procedure.getLine(), procedure.getColumn()));
+                            allErrors.add(new PError("Semantica", "No se puede declarar un procedimiento con el nombre de una función reservada: " + procedure.getId(), procedure.getLine(), procedure.getColumn()));
+                            continue;
+                        }
+                        tree.addProcedure(procedure);
+                        globalTable.addProcedure(procedure);
+                    }
+                }
+
                 //
                 for (Statement statement : tree.getStatements()) {
                     if (statement == null) continue;
-                    if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
+                    if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) && !(statement instanceof FunctionDeclaration) && !(statement instanceof ProcedureDeclaration)) {
                         var result = statement.execute(tree, globalTable, typesTable);
 //                    if (result instanceof PError) {
 //                        allErrors.add((PError) result);

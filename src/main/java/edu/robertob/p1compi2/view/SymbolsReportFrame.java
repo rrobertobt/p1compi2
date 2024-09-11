@@ -6,6 +6,7 @@ package edu.robertob.p1compi2.view;
 
 import edu.robertob.p1compi2.engine.structs.SymbolTable;
 
+import javax.swing.*;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -145,9 +146,14 @@ public class SymbolsReportFrame extends javax.swing.JFrame {
             }
         }
 
+        if (globalTable == null) {
+            JOptionPane.showMessageDialog(this, "No hay tabla de símbolos para mostrar", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         var symbols = globalTable.collectAllEntries();
 
-        for (int i = 0; i < symbols.size(); i++) {
+        int i = 0;
+        for (i = 0; i < symbols.size(); i++) {
             var symbol = symbols.get(i);
             System.out.println("Symbol: " + symbol);
             this.jTable1.setValueAt(i+1, i, 0);
@@ -159,6 +165,19 @@ public class SymbolsReportFrame extends javax.swing.JFrame {
             this.jTable1.setValueAt(symbol.getScopeName(), i, 5);
             this.jTable1.setValueAt(symbol.getLine(), i, 6);
             this.jTable1.setValueAt(symbol.getColumn(), i, 7);
+        }
+
+        var functionDeclarations = globalTable.getFunctions();
+        for (; i < symbols.size() + functionDeclarations.size(); i++) {
+            var function = functionDeclarations.get(i - symbols.size());
+            this.jTable1.setValueAt(i+1, i, 0);
+            this.jTable1.setValueAt(function.getId(), i, 1);
+            this.jTable1.setValueAt("Función", i, 2);
+            this.jTable1.setValueAt(function.getTypeId(), i, 3);
+            this.jTable1.setValueAt(function.getParams().size(), i, 4);
+            this.jTable1.setValueAt("Global", i, 5);
+            this.jTable1.setValueAt(function.getLine(), i, 6);
+            this.jTable1.setValueAt(function.getColumn(), i, 7);
         }
 
 

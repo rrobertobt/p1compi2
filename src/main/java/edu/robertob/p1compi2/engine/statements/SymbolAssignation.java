@@ -2,6 +2,7 @@ package edu.robertob.p1compi2.engine.statements;
 
 import edu.robertob.p1compi2.engine.base.Statement;
 import edu.robertob.p1compi2.engine.structs.*;
+import edu.robertob.p1compi2.engine.utils.TypeUtils;
 
 import java.util.Objects;
 
@@ -69,7 +70,7 @@ public class SymbolAssignation extends Statement {
         }
 
 
-        if (symbol.getTypeId() != this.newValue.getTypeId()) {
+        if (TypeUtils.recursivelyResolveBaseType(symbol.getTypeId(), typesTable) != this.newValue.getTypeId()) {
             var err = new PError("Semantica", "No se puede asignar el valor de tipo " + typesTable.getType(this.newValue.getTypeId()).name + " a una variable de tipo " + typesTable.getType(symbol.getTypeId()).name + "(" + (Objects.equals(typesTable.getType(symbol.getOriginalTypeId()).name, "void") ? "" : typesTable.getType(symbol.getOriginalTypeId()).name) + ")", this.line, this.column);
             tree.addError(err);
             return err;

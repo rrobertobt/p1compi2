@@ -16,6 +16,8 @@ public class Program {
         this.name = header.getName();
         this.headerStatements = new LinkedList<>();
         this.methodsStatements = new LinkedList<>();
+        if (methodsStatements != null)  this.methodsStatements.addAll(methodsStatements);
+        else this.methodsStatements = new LinkedList<>();
         this.bodyStatements = bodyStatements;
 
         this.headerStatements.addAll(header.getStatements());

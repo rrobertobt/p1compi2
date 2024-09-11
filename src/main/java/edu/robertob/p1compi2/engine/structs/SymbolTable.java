@@ -3,6 +3,9 @@ package edu.robertob.p1compi2.engine.structs;
 //import edu.robertob.olc1.vj24.Engine.Base.Instruction;
 //import edu.robertob.olc1.vj24.Engine.Statements.MethodDeclaration;
 
+import edu.robertob.p1compi2.engine.statements.FunctionDeclaration;
+import edu.robertob.p1compi2.engine.statements.ProcedureDeclaration;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,11 +18,16 @@ public class SymbolTable {
     private LinkedList<SymbolTable> children;
     private String name;
 
+    private LinkedList<FunctionDeclaration> functions;
+    private LinkedList<ProcedureDeclaration> procedures;
+
     public SymbolTable(String name) {
         this.parentTable = null;
         this.children = new LinkedList<>();
         this.symbols = new HashMap<>();
         this.name = name;
+        this.functions = new LinkedList<>();
+        this.procedures = new LinkedList<>();
     }
 
 //    public boolean setSymbol(SymbolVariable symbol) {
@@ -51,6 +59,20 @@ public class SymbolTable {
         this.children = new LinkedList<>();
         this.symbols = new HashMap<>();
         this.name = "";
+    }
+
+    public void addFunction(FunctionDeclaration function) {
+        if (this.functions == null) {
+            this.functions = new LinkedList<>();
+        }
+        this.functions.add(function);
+    }
+
+    public void addProcedure(ProcedureDeclaration procedure) {
+        if (this.procedures == null) {
+            this.procedures = new LinkedList<>();
+        }
+        this.procedures.add(procedure);
     }
 
     public SymbolVariable getSymbol(String id) {
@@ -151,5 +173,9 @@ public class SymbolTable {
         for (SymbolTable child : symbolTable.children) {
             collectEntriesRecursive(child, allEntries);
         }
+    }
+
+    public LinkedList<FunctionDeclaration> getFunctions() {
+        return functions;
     }
 }
