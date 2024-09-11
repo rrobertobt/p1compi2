@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="p1compi2-ss2024:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/p1compi2_ss2024_jar</output-path>
+    <root id="archive" name="p1compi2-ss2024.jar">
+      <element id="module-output" name="p1compi2-ss2024" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/vbmacher/java-cup-runtime/11b-20160615-3/java-cup-runtime-11b-20160615-3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/de/jflex/jflex/1.9.1/jflex-1.9.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/vbmacher/java-cup/11b-20160615-3/java-cup-11b-20160615-3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/ant/ant-launcher/1.10.13/ant-launcher-1.10.13.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/ant/ant/1.10.13/ant-1.10.13.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
