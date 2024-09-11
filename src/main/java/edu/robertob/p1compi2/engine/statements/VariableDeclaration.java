@@ -63,7 +63,7 @@ public class VariableDeclaration extends Statement {
                 if (ids.get(i).equals(ids.get(j))) {
                     var err = new PError("Semantica", "Identificador duplicado " + ids.get(i) + " en declaración de variables", this.line, this.column);
                     tree.addError(err);
-                    return err;
+//                    return err;
                 }
             }
         }
@@ -77,6 +77,7 @@ public class VariableDeclaration extends Statement {
 //        System.out.println("VariableDeclaration.willCreateType: "+this.parentTypeName+ typesTable.getType(this.parentTypeId));
 
         if ((isArray || isRange || isRecord)) {
+            System.out.println("VariableDeclaration.createType: minVal = " + this.minVal + ", maxVal = " + this.maxVal);
             System.out.println("VariableDeclaration.createType: id = " + ids + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
             final String[] idName = {""};
             ids.forEach(id -> {
@@ -102,6 +103,12 @@ public class VariableDeclaration extends Statement {
             this.parentTypeId = newTypeId;
             this.typeId = newTypeId;
 
+            // before check if the max value is greater than the min value
+            if ((int) this.maxVal < (int) this.minVal) {
+                tree.addError(new PError("Semantica", "Valor máximo de rango/arreglo debe ser mayor que el valor mínimo", this.line, this.column));
+                return new PError("Semantica", "Valor máximo de rango/arreglo debe ser mayor que el valor mínimo", this.line, this.column);
+            }
+
             TypeDeclaration newType = new TypeDeclaration(
                     this.line,
                     this.column,
@@ -118,6 +125,7 @@ public class VariableDeclaration extends Statement {
             System.out.println("generating type: " + typeName);
             Object result = newType.execute(tree, table, typesTable);
             this.typeId = typesTable.getType(typeName).id;
+            System.out.println("typeId: " + this.typeId + " typeName: " + typeName);
 //            if (result instanceof PError) {
 //                return result; // Return error if type registration fails
 //            }
@@ -128,10 +136,19 @@ public class VariableDeclaration extends Statement {
                     ArrayValueUtils.fillArrayWithPrimitives(this.parentTypeId, listOfVals, calculateSize(), (int) this.minVal, (int) this.maxVal, this.line, this.column);
                     var arrayVal = new ArrayValue(this.parentTypeId, listOfVals, this.calculateSize(), (int) this.minVal, (int) this.maxVal);
                     SymbolVariable symbol = new SymbolVariable(this.typeId, false, id, arrayVal, this.line, this.column);
-                    System.out.println(arrayVal.getValues());
-                    System.out.println(arrayVal.get(0));
-                    System.out.println(arrayVal.get(4));
-                    System.out.println(arrayVal.get(25));
+                    System.out.println("symbol"+symbol.getTypeId());
+
+                    boolean created = table.setSymbol(symbol);
+                    if (!created) {
+                        return new PError("Semantica", "Variable " + id + " ya se ha declarado", this.line, this.column);
+                    }
+                }
+            }
+            if (isRange) {
+                for (String id : ids) {
+                    var defaultVal = new Primitive(this.parentTypeId, this.line, this.column, (int) this.minVal);
+                    var rangeVal = new SubrangeValue((int) this.minVal, (int) this.maxVal);
+                    SymbolVariable symbol = new SymbolVariable(this.typeId, false, id, rangeVal, this.line, this.column);
 
                     boolean created = table.setSymbol(symbol);
                     if (!created) {
@@ -141,6 +158,7 @@ public class VariableDeclaration extends Statement {
             }
             return null;
         } else {
+            System.out.println("VariableDeclaration.createType: id = " + ids + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
             TypesTable.TypeTableEntry parentType;
             if (this.parentTypeName != null) {
                 parentType = typesTable.getType(this.parentTypeName);

@@ -163,9 +163,18 @@ PROGRAM_HEADER ::=
     if (constsList == null) constsList = new LinkedList<>();
     if (varsList == null) varsList = new LinkedList<>();
 
-    RESULT.getStatements().addAll(typesList);
+    var newTypesList = Program.reverseLinkedList(typesList);
+
+    RESULT.getStatements().addAll(newTypesList);
+
     RESULT.getStatements().addAll(constsList);
     RESULT.getStatements().addAll(varsList);
+
+    for (Statement s : RESULT.getStatements()){
+        if (s instanceof TypeDeclaration){
+            ((TypeDeclaration)s).getNames();
+        }
+    }
     System.out.println("Program header: "+RESULT.getStatements().size());
     :}
 ;
@@ -235,7 +244,7 @@ TYPE_DECLARATION_LIST ::= TYPE_DECLARATION:a {: RESULT = new LinkedList<>(); RES
 TYPE_DECLARATION ::= IDENTIFIER_LIST:a EQUALS TYPE:b {: RESULT = new TypeDeclaration(aleft, aright, a, b, false, false, false, 1, 0, 0); :}
                    | IDENTIFIER_LIST:a EQUALS ARRAY_TYPE:b {: RESULT = new TypeDeclaration(aleft, aright, a, b.getParentTypeId(), true, false, false, ((int)b.getRangeDefinition()[1] - (int)b.getRangeDefinition()[0])+1, (int)b.getRangeDefinition()[0], (int)b.getRangeDefinition()[1]); :}
                    | IDENTIFIER_LIST:a EQUALS RANGE_DEF:b {: RESULT = new TypeDeclaration(aleft, aright, a, TypesTable.DefaultTypes.INTEGER.id, false, true, false, 1, (int)b[0], (int)b[1]); :}
-                   | IDENTIFIER_LIST:a EQUALS /*RW_RECORD*/ ID:b {: RESULT = new TypeDeclaration(aleft, aright, a, b, false, false, true, 0, 0, 0); :}
+                   | IDENTIFIER_LIST:a EQUALS /*RW_RECORD*/ ID:b {: RESULT = new TypeDeclaration(aleft, aright, a, b, false, false, false, 0, 0, 0); :}
                    | RECORD_DECLARATION
                    ;
 
@@ -259,12 +268,15 @@ RANGE_INT ::= INTEGER:a {: RESULT = Integer.parseInt(a); :}
             ;
 
 RANGE_DEF ::= RANGE_INT:min DOT DOT RANGE_INT:max {: RESULT = new Object[]{min, max}; :}
-            | CHAR:min DOT DOT CHAR:max {: RESULT = new Object[]{(int)min.charAt(0), (int)max.charAt(0)}; :}
+//            | CHAR:min DOT DOT CHAR:max {: RESULT = new Object[]{(int)min.charAt(0), (int)max.charAt(0)}; :}
              ;
 
 ARRAY_TYPE ::=
     RW_ARRAY OPENBRACKET RANGE_DEF:a CLOSEBRACKET RW_OF TYPE:b {: RESULT = new TypeDeclaration.ArrayTypeDeclarationHelper(a, b); :}
   | RW_PACKED RW_ARRAY OPENBRACKET RANGE_DEF:a CLOSEBRACKET RW_OF TYPE:b {: RESULT = new TypeDeclaration.ArrayTypeDeclarationHelper(a, b); :}
+
+  | RW_ARRAY OPENBRACKET RANGE_DEF:a CLOSEBRACKET RW_OF ID:b {: RESULT = new TypeDeclaration.ArrayTypeDeclarationHelper(a, b); :}
+  | RW_PACKED RW_ARRAY OPENBRACKET RANGE_DEF:a CLOSEBRACKET RW_OF ID:b {: RESULT = new TypeDeclaration.ArrayTypeDeclarationHelper(a, b); :}
 ;
 
 /*
@@ -332,7 +344,7 @@ VARIABLE_DECLARATION_LIST ::= VARIABLE_DECLARATION:a SEMICOLON VARIABLE_DECLARAT
 ;
 // params: int typeId, int line, int column, LinkedList<String> ids, Statement value, boolean isArray, boolean isRange, boolean isRecord, Object minVal, Object maxVal, String parentTypeName, int parentTypeId
 VARIABLE_DECLARATION ::= IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, false, false, null, null, null, b); :}
-                    | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, false, true, null, null, b, -1); :}
+                    | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, false, false, null, null, b, -1); :}
                     | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, true, false, false, b.getRangeDefinition()[0], b.getRangeDefinition()[1], null, b.getParentTypeId()); :}
                     | IDENTIFIER_LIST:a COLON RECORD_USE:b {::}
                     | IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, true, false, b[0], b[1], null, TypesTable.DefaultTypes.INTEGER.id); :}

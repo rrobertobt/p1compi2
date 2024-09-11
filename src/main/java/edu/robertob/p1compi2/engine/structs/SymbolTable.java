@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SymbolTable {
     private SymbolTable parentTable;
@@ -101,20 +102,20 @@ public class SymbolTable {
         this.children = children;
     }
 
-    public List<SymbolTable> collectAllSymbolTables() {
-        List<SymbolTable> allTables = new LinkedList<>();
-        allTables.add(this);
-        for (SymbolTable child : children) {
-            allTables.addAll(child.collectAllSymbolTables());
-        }
-        return allTables;
-    }
+//    public List<SymbolTable> collectAllSymbolTables() {
+//        List<SymbolTable> allTables = new LinkedList<>();
+//        allTables.add(this);
+//        for (SymbolTable child : children) {
+//            allTables.addAll(child.collectAllSymbolTables());
+//        }
+//        return allTables;
+//    }
 
-    public Map<String, Object> collectAllSymbols() {
-        Map<String, Object> allSymbols = new HashMap<>();
-//        collectSymbolsRecursively(this, allSymbols);
-        return allSymbols;
-    }
+//    public Map<String, Object> collectAllSymbols() {
+//        Map<String, Object> allSymbols = new HashMap<>();
+////        collectSymbolsRecursively(this, allSymbols);
+//        return allSymbols;
+//    }
 
 //    public void addMethods(Tree tree){
 //        for (Instruction i : tree.getMethods()) {
@@ -134,4 +135,21 @@ public class SymbolTable {
 //            collectSymbolsRecursively(child, allSymbols);
 //        }
 //    }
+
+    public LinkedList<SymbolVariable> collectAllEntries() {
+        LinkedList<SymbolVariable> allEntries = new LinkedList<>();
+        collectEntriesRecursive(this, allEntries);
+        return allEntries;
+    }
+
+    public void collectEntriesRecursive(SymbolTable symbolTable, LinkedList<SymbolVariable> allEntries) {
+        allEntries.addAll(symbolTable.symbols.values().stream().map(symbol -> {
+            SymbolVariable symbolVariable = (SymbolVariable) symbol;
+            symbolVariable.setScopeName(symbolTable.name);
+            return symbolVariable;
+        }).toList());
+        for (SymbolTable child : symbolTable.children) {
+            collectEntriesRecursive(child, allEntries);
+        }
+    }
 }

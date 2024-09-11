@@ -1,6 +1,7 @@
 package edu.robertob.p1compi2.engine.structs;
 
 import edu.robertob.p1compi2.engine.base.Statement;
+import edu.robertob.p1compi2.engine.statements.TypeDeclaration;
 
 import java.util.LinkedList;
 
@@ -18,9 +19,11 @@ public class Program {
         this.bodyStatements = bodyStatements;
 
         this.headerStatements.addAll(header.getStatements());
+        // invert order of header statements
 
         this.allStatements = new LinkedList<>();
-        if (this.headerStatements != null) this.allStatements.addAll(header.getStatements());
+//        var newList = reverseLinkedList(this.headerStatements);
+        if (this.headerStatements != null) this.allStatements.addAll(this.headerStatements);
         if (this.methodsStatements != null) this.allStatements.addAll(this.methodsStatements);
         if (this.bodyStatements != null) this.allStatements.addAll(this.bodyStatements);
     }
@@ -65,4 +68,18 @@ public class Program {
             return statements;
         }
     }
+
+    public static LinkedList<Statement> reverseLinkedList(LinkedList<TypeDeclaration> llist)
+    {
+        LinkedList<Statement> revLinkedList = new LinkedList<Statement>();
+        for (int i = llist.size() - 1; i >= 0; i--) {
+
+            // Append the elements in reverse order
+            revLinkedList.add(llist.get(i));
+        }
+        // Return the reversed arraylist
+        return revLinkedList;
+    }
+
+
 }

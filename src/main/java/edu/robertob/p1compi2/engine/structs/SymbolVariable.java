@@ -6,6 +6,8 @@ public class SymbolVariable {
     private String scopeName;
     private Object value;
     private boolean constant;
+    private boolean isMethod;
+    private boolean isMethodParam;
     private int line;
     private int column;
     private int originalTypeId;
@@ -32,6 +34,15 @@ public class SymbolVariable {
     }
 
     public SymbolVariable(int typeId, boolean constant, String id, ArrayValue value, int line, int column) {
+        this.typeId = typeId;
+        this.constant = constant;
+        this.id = id;
+        this.value = value;
+        this.line = line;
+        this.column = column;
+    }
+
+    public SymbolVariable(int typeId, boolean constant, String id, SubrangeValue value, int line, int column) {
         this.typeId = typeId;
         this.constant = constant;
         this.id = id;
@@ -142,5 +153,25 @@ public class SymbolVariable {
 
     public void setMaxVal(Object maxVal) {
         this.maxVal = maxVal;
+    }
+
+    public boolean isMethod() {
+        return isMethod;
+    }
+
+    public void setMethod(boolean isMethod) {
+        this.isMethod = isMethod;
+    }
+
+    public String getCategory() {
+        if (this.isMethod) {
+            return "Funcion/Procedimiento";
+        } else if (this.isConstant()) {
+            return "Constante";
+        } else if (this.isMethodParam) {
+            return "Parametro";
+        } else {
+            return "Variable";
+        }
     }
 }

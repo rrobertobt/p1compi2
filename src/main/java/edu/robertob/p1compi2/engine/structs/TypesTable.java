@@ -118,6 +118,7 @@ public class TypesTable {
         public String type;
         public int size;
         public int parentTypeId;
+        public int baseTypeId;
         public boolean isArray;
         public boolean isRange;
         public boolean isRecord;
@@ -131,11 +132,12 @@ public class TypesTable {
         }
 
         public TypeTableEntry(
-                int id, String name, int parentTypeId, int size, boolean isArray, boolean isRecord, boolean isRange, Object minVal, Object maxVal
+                int id, String name, int parentTypeId, int baseTypeId, int size, boolean isArray, boolean isRecord, boolean isRange, Object minVal, Object maxVal
         ) {
             this.id = id;
             this.name = name;
             this.parentTypeId = parentTypeId;
+            this.baseTypeId = baseTypeId;
             this.size = size;
             this.isArray = isArray;
             this.isRecord = isRecord;
@@ -169,6 +171,7 @@ public class TypesTable {
         integer.type = "int";
         integer.size = 1;
         integer.parentTypeId = -1;
+        integer.baseTypeId = -1;
         integer.isArray = false;
         integer.isRange = false;
         integer.minVal = null;
@@ -181,6 +184,7 @@ public class TypesTable {
         real.type = "real";
         real.size = 1;
         real.parentTypeId = -1;
+        real.baseTypeId = -1;
         real.isArray = false;
         real.isRange = false;
         real.minVal = null;
@@ -193,6 +197,7 @@ public class TypesTable {
         character.type = "char";
         character.size = 1;
         character.parentTypeId = -1;
+        character.baseTypeId = -1;
         character.isArray = false;
         character.isRange = false;
         character.minVal = null;
@@ -205,6 +210,7 @@ public class TypesTable {
         string.type = "string";
         string.size = 1;
         string.parentTypeId = -1;
+        string.baseTypeId = -1;
         string.isArray = false;
         string.isRange = false;
         string.minVal = null;
@@ -217,6 +223,7 @@ public class TypesTable {
         booleanType.type = "boolean";
         booleanType.size = 1;
         booleanType.parentTypeId = -1;
+        booleanType.baseTypeId = -1;
         booleanType.isArray = false;
         booleanType.isRange = false;
         booleanType.minVal = null;
@@ -229,6 +236,7 @@ public class TypesTable {
         voidType.type = "void";
         voidType.size = 0;
         voidType.parentTypeId = -1;
+        voidType.baseTypeId = -1;
         voidType.isArray = false;
         voidType.isRange = false;
         voidType.minVal = null;

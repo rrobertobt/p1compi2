@@ -5,6 +5,7 @@ import edu.robertob.p1compi2.engine.structs.PError;
 import edu.robertob.p1compi2.engine.structs.SymbolTable;
 import edu.robertob.p1compi2.engine.structs.Tree;
 import edu.robertob.p1compi2.engine.structs.TypesTable;
+import edu.robertob.p1compi2.engine.utils.TypeUtils;
 
 import java.util.LinkedList;
 
@@ -49,9 +50,14 @@ public class TypeDeclaration extends Statement {
 
     @Override
     public Object execute(Tree tree, SymbolTable table, TypesTable typesTable) {
+//        for(var entry : typesTable.getTypes().entrySet()) {
+//            System.out.println("Entry: "+((TypesTable.TypeTableEntry)entry.getValue()).name);
+//        }
         if (!isArray && !isRange && !isRecord && (parentTypeName == null)) {
+            System.out.println("Parent type id: " + parentTypeId);
             for (String name : names) {
-                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, null, null);
+                System.out.println(name);
+                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId,  TypeUtils.recursivelyResolveBaseType(parentTypeId, typesTable), size, isArray, isRecord, isRange, null, null);
                 boolean created = typesTable.setType(newType);
                 if (!created) {
                     return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
@@ -59,17 +65,29 @@ public class TypeDeclaration extends Statement {
             }
         } else if (!isArray && !isRange && !isRecord && (parentTypeName != null)) {
             for (String name : names) {
-                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, typesTable.getType(parentTypeName).id, size, isArray, isRecord, isRange, null, null);
+                if (typesTable.getType(parentTypeName) == null){
+                    tree.addError(new PError("Semantica", "Tipo " + parentTypeName + " no existe (o ha sido declarado despues)", this.line, this.column));
+                    return new PError("Semantica", "Tipo " + parentTypeName + " no existe (o ha sido declarado despues)", this.line, this.column);
+                }
+
+                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, typesTable.getType(parentTypeName).id, TypeUtils.recursivelyResolveBaseType(typesTable.getType(parentTypeName).id, typesTable), size, isArray, isRecord, isRange, null, null);
                 boolean created = typesTable.setType(newType);
                 if (!created) {
+                    tree.addError(new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column));
                     return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
                 }
             }
         } else if (isArray || isRange) {
+            if ((int) this.end < (int) this.start) {
+                tree.addError(new PError("Semantica", "Valor máximo de rango/arreglo debe ser mayor que el valor mínimo", this.line, this.column));
+                return new PError("Semantica", "Valor máximo de rango/arreglo debe ser mayor que el valor mínimo", this.line, this.column);
+            }
             for (String name : names) {
-                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, start, end);
+                System.out.println(name);
+                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, TypeUtils.recursivelyResolveBaseType(parentTypeId, typesTable),size, isArray, isRecord, isRange, start, end);
                 boolean created = typesTable.setType(newType);
                 if (!created) {
+                    tree.addError(new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column));
                     return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
                 }
             }
@@ -97,10 +115,18 @@ public class TypeDeclaration extends Statement {
     public static class ArrayTypeDeclarationHelper {
         private Object[] rangeDefinition;
         private int parentTypeId;
+        private String parentTypeName;
 
         public ArrayTypeDeclarationHelper(Object[] rangeDefinition, int parentTypeId) {
             this.rangeDefinition = rangeDefinition;
             this.parentTypeId = parentTypeId;
+            this.parentTypeName = parentTypeName;
+        }
+
+        public ArrayTypeDeclarationHelper(Object[] rangeDefinition, String parentTypeName) {
+            this.rangeDefinition = rangeDefinition;
+            this.parentTypeId = parentTypeId;
+            this.parentTypeName = parentTypeName;
         }
 
         public Object[] getRangeDefinition() {
@@ -109,6 +135,10 @@ public class TypeDeclaration extends Statement {
 
         public int getParentTypeId() {
             return parentTypeId;
+        }
+
+        public String getParentTypeName() {
+            return parentTypeName;
         }
     }
 

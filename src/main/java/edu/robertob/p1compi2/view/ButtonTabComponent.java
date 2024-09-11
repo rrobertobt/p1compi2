@@ -12,6 +12,9 @@ public class ButtonTabComponent extends JPanel {
     private final CurrentSession currentSession;
     // we'll save the label in this variable so we can update it when the tab save status changes
     private final JLabel label;
+
+    private final JButton button;
+
     public ButtonTabComponent(final JTabbedPane pane, CurrentSession currentSession) {
         //unset default FlowLayout' gaps
 
@@ -35,30 +38,20 @@ public class ButtonTabComponent extends JPanel {
             }
         };
         this.label = label;
-        System.out.println("label: " + label);
 
         add(label);
         //add more space between the label and the button
         label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
         //tab button
         JButton button = new TabButton();
+        this.button = button;
         add(button);
         //add more space to the top of the component
         setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+    }
 
-        //add an event listener to the buttontab itself to check if it was a middle click to close the tab
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isMiddleMouseButton(e)) {
-                    int i = pane.indexOfTabComponent(ButtonTabComponent.this);
-                    if (i != -1) {
-                        ButtonTabComponent.this.currentSession.removeFile(i);
-                        pane.remove(i);
-                    }
-                }
-            }
-        });
+    public JButton getButton() {
+        return button;
     }
 
     @Override
@@ -99,6 +92,12 @@ public class ButtonTabComponent extends JPanel {
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
             if (i != -1) {
+                // if the file isnt saved, we ask the user if they want to save it
+                var currentFile = ButtonTabComponent.this.currentSession.getFiles().get(i);
+                if (!currentFile.isSaved()) {
+                    int result = JOptionPane.showConfirmDialog(null, "Este archivo tiene cambios no guardados, estas seguro que deseas cerrarlo?", "Save file", JOptionPane.YES_NO_CANCEL_OPTION);
+                    if (result != JOptionPane.YES_OPTION) return;
+                }
                 ButtonTabComponent.this.currentSession.removeFile(i);
                 pane.remove(i);
             }

@@ -17,7 +17,6 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.*;
@@ -30,7 +29,7 @@ public class MainFrame extends JFrame {
 
     CurrentSession currentSession = new CurrentSession();
     TypesReportFrame typesReportFrame = new TypesReportFrame();
-//    SymbolsReportFrame symbolsReportFrame = new SymbolsReportFrame();
+    SymbolsReportFrame symbolsReportFrame = new SymbolsReportFrame();
 //    ErrorsReportFrame errorsReportFrame = new ErrorsReportFrame();
 
     /**
@@ -55,8 +54,79 @@ public class MainFrame extends JFrame {
         runCodeBtn.getActionMap().put("runCode", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            if (currentSession.getActiveFileIndex() != -1)
-                runCodeBtn.doClick();
+                if (currentSession.getActiveFileIndex() != -1)
+                    runCodeBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for the analyze all button (ctrl+E, ctrl+shift+ENTER)
+        analyzeAllCodeBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK), "analyzeAllCode");
+        analyzeAllCodeBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "analyzeAllCode");
+
+        analyzeAllCodeBtn.getActionMap().put("analyzeAllCode", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentSession.getActiveFileIndex() != -1)
+                    analyzeAllCodeBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for the save button (ctrl+S, command+S)
+        saveFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "saveFile");
+        saveFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.META_DOWN_MASK), "saveFile");
+        saveFileBtn.getActionMap().put("saveFile", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentSession.getActiveFileIndex() != -1)
+                    saveFileBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for the save as button (ctrl+shift+S, command+shift+S)
+        saveAsFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "saveAsFile");
+        saveAsFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "saveAsFile");
+        saveAsFileBtn.getActionMap().put("saveAsFile", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentSession.getActiveFileIndex() != -1)
+                    saveAsFileBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for the new file button (ctrl+N, command+N)
+        newFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK), "newFile");
+        newFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.META_DOWN_MASK), "newFile");
+        newFileBtn.getActionMap().put("newFile", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                newFileBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for the open file button (ctrl+O, command+O)
+        openFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK), "openFile");
+        openFileBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.META_DOWN_MASK), "openFile");
+        openFileBtn.getActionMap().put("openFile", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openFileBtn.doClick();
+            }
+        });
+
+        // create a keyboard shortcut listener for closing the current tab (ctrl+W, command+W)
+        jTabbedPane1.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK), "closeTab");
+        jTabbedPane1.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.META_DOWN_MASK), "closeTab");
+        jTabbedPane1.getActionMap().put("closeTab", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                var index = jTabbedPane1.getSelectedIndex();
+                var test = (ButtonTabComponent)jTabbedPane1.getTabComponentAt(index);
+                var test2 = test.getButton();
+                test2.doClick();
+//                if (index != -1) {
+//                    jTabbedPane1.remove(index);
+//                    currentSession.removeFile(index);
+//                }
             }
         });
     }
@@ -70,134 +140,135 @@ public class MainFrame extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jToolBar2 = new JToolBar();
-        newFileBtn = new JButton();
-        openFileBtn = new JButton();
-        saveFileBtn = new JButton();
-        saveAsFileBtn = new JButton();
-        jSeparator2 = new JToolBar.Separator();
-        fileStatusLabel = new JLabel();
-        runCodeBtn = new JButton();
-        analyzeAllCodeBtn = new JButton();
-        jSplitPane2 = new JSplitPane();
-        jPanel1 = new JPanel();
-        jTabbedPane1 = new JTabbedPane();
-        jPanel2 = new JPanel();
-        consoleOutputLabel = new JLabel();
-        jScrollPane1 = new JScrollPane();
-        jTextPane1 = new JTextPane();
-        jMenuBar1 = new JMenuBar();
-        reportsMenu = new JMenu();
-        errorsMenuItem = new JMenuItem();
-        jMenuItem2 = new JMenuItem();
+        jToolBar2 = new javax.swing.JToolBar();
+        newFileBtn = new javax.swing.JButton();
+        openFileBtn = new javax.swing.JButton();
+        saveFileBtn = new javax.swing.JButton();
+        saveAsFileBtn = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        fileStatusLabel = new javax.swing.JLabel();
+        runCodeBtn = new javax.swing.JButton();
+        analyzeAllCodeBtn = new javax.swing.JButton();
+        jSplitPane2 = new javax.swing.JSplitPane();
+        jPanel1 = new javax.swing.JPanel();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel2 = new javax.swing.JPanel();
+        consoleOutputLabel = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        reportsMenu = new javax.swing.JMenu();
+        symbolsTableMenuItem = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        treeMenuItem = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new Color(252, 252, 252));
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(252, 252, 252));
 
-        jToolBar2.setBackground(new Color(255, 255, 255));
+        jToolBar2.setBackground(new java.awt.Color(255, 255, 255));
         jToolBar2.setBorderPainted(false);
         jToolBar2.setEnabled(false);
 
-        newFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
+        newFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
         newFileBtn.setText("Nuevo archivo");
         newFileBtn.setFocusable(false);
-        newFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        newFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        newFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        newFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        newFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        newFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 newFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(newFileBtn);
 
-        openFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
+        openFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
         openFileBtn.setText("Abrir archivo");
         openFileBtn.setFocusable(false);
-        openFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        openFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        openFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        openFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        openFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        openFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 openFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(openFileBtn);
 
-        saveFileBtn.setIcon(new ImageIcon(getClass().getResource("/download.png"))); // NOI18N
+        saveFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.png"))); // NOI18N
         saveFileBtn.setText("Guardar");
         saveFileBtn.setEnabled(false);
         saveFileBtn.setFocusable(false);
-        saveFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        saveFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        saveFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        saveFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        saveFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        saveFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(saveFileBtn);
 
-        saveAsFileBtn.setIcon(new ImageIcon(getClass().getResource("/download.png"))); // NOI18N
+        saveAsFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.png"))); // NOI18N
         saveAsFileBtn.setText("Guardar como...");
         saveAsFileBtn.setEnabled(false);
         saveAsFileBtn.setFocusable(false);
-        saveAsFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        saveAsFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        saveAsFileBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        saveAsFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        saveAsFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        saveAsFileBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveAsFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(saveAsFileBtn);
 
-        jSeparator2.setBackground(new Color(204, 204, 204));
-        jSeparator2.setForeground(new Color(0, 0, 0));
+        jSeparator2.setBackground(new java.awt.Color(204, 204, 204));
+        jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
         jSeparator2.setOpaque(true);
-        jSeparator2.setSeparatorSize(new Dimension(1, 30));
+        jSeparator2.setSeparatorSize(new java.awt.Dimension(1, 30));
         jToolBar2.add(jSeparator2);
         jToolBar2.add(fileStatusLabel);
 
-        runCodeBtn.setIcon(new ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
+        runCodeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
         runCodeBtn.setText("Ejecutar");
         runCodeBtn.setEnabled(false);
         runCodeBtn.setFocusable(false);
-        runCodeBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        runCodeBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        runCodeBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        runCodeBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        runCodeBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        runCodeBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 runCodeBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(runCodeBtn);
 
-        analyzeAllCodeBtn.setIcon(new ImageIcon(getClass().getResource("/player-next.png"))); // NOI18N
+        analyzeAllCodeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/player-next.png"))); // NOI18N
         analyzeAllCodeBtn.setText("Analizar todos");
         analyzeAllCodeBtn.setEnabled(false);
         analyzeAllCodeBtn.setFocusable(false);
-        analyzeAllCodeBtn.setHorizontalTextPosition(SwingConstants.CENTER);
-        analyzeAllCodeBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
-        analyzeAllCodeBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        analyzeAllCodeBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        analyzeAllCodeBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        analyzeAllCodeBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 analyzeAllCodeBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(analyzeAllCodeBtn);
 
-        jSplitPane2.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jSplitPane2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-        jTabbedPane1.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent evt) {
+        jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jTabbedPane1StateChanged(evt);
             }
         });
 
-        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jTabbedPane1)
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
         );
 
         jSplitPane2.setLeftComponent(jPanel1);
@@ -207,69 +278,78 @@ public class MainFrame extends JFrame {
         jTextPane1.setEditable(false);
         jScrollPane1.setViewportView(jTextPane1);
 
-        GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(consoleOutputLabel)
-                .addContainerGap(675, Short.MAX_VALUE))
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane1)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(consoleOutputLabel)
+                                .addContainerGap(675, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(consoleOutputLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE))
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(consoleOutputLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE))
         );
 
         jSplitPane2.setRightComponent(jPanel2);
 
-        jMenuBar1.setBackground(new Color(252, 252, 252));
+        jMenuBar1.setBackground(new java.awt.Color(252, 252, 252));
         jMenuBar1.setBorder(null);
-        jMenuBar1.setFont(new Font("Helvetica Neue", 0, 15)); // NOI18N
+        jMenuBar1.setFont(new java.awt.Font("Helvetica Neue", 0, 15)); // NOI18N
 
         reportsMenu.setText("Reportes");
         reportsMenu.setEnabled(false);
 
-        errorsMenuItem.setIcon(new ImageIcon(getClass().getResource("/file-sad.png"))); // NOI18N
-        errorsMenuItem.setText("Ver errores");
-        errorsMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-//                errorsMenuItemActionPerformed(evt);
+        symbolsTableMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/list-letters.png"))); // NOI18N
+        symbolsTableMenuItem.setText("Ver tabla de símbolos");
+        symbolsTableMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                symbolsTableMenuItemActionPerformed(evt);
             }
         });
-        reportsMenu.add(errorsMenuItem);
+        reportsMenu.add(symbolsTableMenuItem);
 
-        jMenuItem2.setIcon(new ImageIcon(getClass().getResource("/file-code.png"))); // NOI18N
-        jMenuItem2.setText("Ver tabla de simbolos");
-        jMenuItem2.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
+        jMenuItem2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/category.png"))); // NOI18N
+        jMenuItem2.setText("Ver tabla de tipos");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem2ActionPerformed(evt);
             }
         });
         reportsMenu.add(jMenuItem2);
 
+        treeMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/binary-tree.png"))); // NOI18N
+        treeMenuItem.setText("Ver árbol de activaciones");
+        treeMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                treeMenuItemActionPerformed(evt);
+            }
+        });
+        reportsMenu.add(treeMenuItem);
+
         jMenuBar1.add(reportsMenu);
 
         setJMenuBar(jMenuBar1);
 
-        GroupLayout layout = new GroupLayout(getContentPane());
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-            .addComponent(jToolBar2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jSplitPane2, GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jSplitPane2, javax.swing.GroupLayout.Alignment.LEADING)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane2, GroupLayout.DEFAULT_SIZE, 698, Short.MAX_VALUE))
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSplitPane2))
         );
 
         pack();
@@ -301,7 +381,7 @@ public class MainFrame extends JFrame {
         switchTabAndSetDocumentListener(sessionFile, textPane);
     }//GEN-LAST:event_newFileBtnActionPerformed
 
-    private void switchTabAndSetDocumentListener( PFile sessionFile, JTextPane textArea) {
+    private void switchTabAndSetDocumentListener(PFile sessionFile, JTextPane textArea) {
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getTabCount() - 1);
         final String UNDO_ACTION = "Undo";
         final String REDO_ACTION = "Redo";
@@ -387,48 +467,55 @@ public class MainFrame extends JFrame {
 
     private void openFileBtnActionPerformed(ActionEvent evt) {//GEN-FIRST:event_openFileBtnActionPerformed
         var fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(true);
         var result = fileChooser.showOpenDialog(this);
+
         if (result == JFileChooser.APPROVE_OPTION) {
-            var file = fileChooser.getSelectedFile();
-            var path = file.getAbsolutePath();
-            var name = file.getName();
-            var content = "";
-            var sessionFile = new  PFile(name, path, content, true, false, jTabbedPane1.getTabCount());
+//            var file = fileChooser.getSelectedFile();
+            var files = fileChooser.getSelectedFiles();
 
-            for (int i = 0; i < currentSession.getFiles().size(); i++) {
-                if (currentSession.getFiles().get(i) != null && currentSession.getFiles().get(i).getSystemPath().equals(path)) {
-                    JOptionPane.showMessageDialog(this, "El archivo ya está abierto", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+            for (var file : files) {
+                var path = file.getAbsolutePath();
+                var name = file.getName();
+                var content = "";
+                var sessionFile = new PFile(name, path, content, true, false, jTabbedPane1.getTabCount());
+
+                for (int i = 0; i < currentSession.getFiles().size(); i++) {
+                    if (currentSession.getFiles().get(i) != null && currentSession.getFiles().get(i).getSystemPath().equals(path)) {
+                        JOptionPane.showMessageDialog(this, "El archivo ya está abierto", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 }
-            }
-            currentSession.addFile(sessionFile);
+                currentSession.addFile(sessionFile);
 
-            try {
-                var reader = new BufferedReader(new FileReader(path));
-                var line = reader.readLine();
-                while (line != null) {
-                    content += line + "\n";
-                    line = reader.readLine();
+                try {
+                    var reader = new BufferedReader(new FileReader(path));
+                    var line = reader.readLine();
+                    while (line != null) {
+                        content += line + "\n";
+                        line = reader.readLine();
+                    }
+                    if (content.length() > 0) content = content.substring(0, content.length() - 1);
+                    sessionFile.setContent(content);
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                if (content.length() > 0) content = content.substring(0, content.length() - 1);
-                sessionFile.setContent(content);
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                var undoManager = new UndoManager();
+                var textPane = new JTextPane();
+                textPane.setText(content);
+                var scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                var tln = new TextLineNumber(textPane, 3);
+                scrollPane.setRowHeaderView(tln);
+
+                textPane.setFont(new Font("monospaced", Font.PLAIN, 15));
+
+                jTabbedPane1.add(name, scrollPane);
+                jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
+                currentSession.setActiveFile(jTabbedPane1.getTabCount() - 1);
+                switchTabAndSetDocumentListener(sessionFile, textPane);
             }
-            var undoManager = new UndoManager();
-            var textPane = new JTextPane();
-            textPane.setText(content);
-            var scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-            var tln = new TextLineNumber(textPane, 3);
-            scrollPane.setRowHeaderView(tln);
-
-            textPane.setFont(new Font("monospaced", Font.PLAIN, 15));
-
-            jTabbedPane1.add(name, scrollPane);
-            jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
-            currentSession.setActiveFile(jTabbedPane1.getTabCount() - 1);
-            switchTabAndSetDocumentListener(sessionFile, textPane);
         }
 
 
@@ -526,6 +613,7 @@ public class MainFrame extends JFrame {
                 if (statement == null) continue;
 
                 if (statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) {
+//                    System.out.println("in run"+((TypeDeclaration)statement).getNames());
                     var result = statement.execute(tree, globalTable, typesTable);
 //                    if (result instanceof PError) {
 //                        allErrors.add((PError) result);
@@ -534,7 +622,7 @@ public class MainFrame extends JFrame {
             }
 
             //
-            for (Statement statement : tree.getStatements()){
+            for (Statement statement : tree.getStatements()) {
                 if (statement == null) continue;
                 if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
                     var result = statement.execute(tree, globalTable, typesTable);
@@ -544,10 +632,10 @@ public class MainFrame extends JFrame {
                 }
             }
 
-            var alltypes = typesTable.collectAllEntries();
-            for (var type : alltypes) {
-                System.out.println(type.toString());
-            }
+//            var alltypes = typesTable.collectAllEntries();
+//            for (var type : alltypes) {
+//                System.out.println(type.toString());
+//            }
 
         } catch (Exception e) {
             allErrors.add(new PError("Sintáctico", "Error al analizar el código", 0, 0));
@@ -569,13 +657,13 @@ public class MainFrame extends JFrame {
         currentSession.getActiveFile().setConsoleOutput(jTextPane1.getText());
     }//GEN-LAST:event_runCodeBtnActionPerformed
 
-//    private void errorsMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_errorsMenuItemActionPerformed
-//        var activeFile = currentSession.getActiveFile();
-//        if (activeFile != null) {
-//            errorsReportFrame.setErrorsAndShow(activeFile.getErrors());
-//        }
-//    }//GEN-LAST:event_errorsMenuItemActionPerformed
-//
+    private void symbolsTableMenuItemActionPerformed(ActionEvent evt) {//GEN-FIRST:event_symbolsTableMenuItemActionPerformed
+        var activeFile = currentSession.getActiveFile();
+        if (activeFile != null) {
+            symbolsReportFrame.setSymbolTableAndShow(activeFile.getGlobalTable());
+        }
+    }//GEN-LAST:event_symbolsTableMenuItemActionPerformed
+
     private void jMenuItem2ActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         var activeFile = currentSession.getActiveFile();
         if (activeFile != null) {
@@ -650,30 +738,123 @@ public class MainFrame extends JFrame {
     }//GEN-LAST:event_saveAsFileBtnActionPerformed
 
     private void analyzeAllCodeBtnActionPerformed(ActionEvent evt) {//GEN-FIRST:event_analyzeAllCodeBtnActionPerformed
-        // TODO add your handling code here:
+        var allFiles = currentSession.getFiles();
+
+        boolean success = true;
+        var failedFileNames = new LinkedList<String>();
+        for (var file : allFiles) {
+            if (file == null) continue;
+            var code = file.getContent();
+            code = code.trim();
+            PLexer lexer = new PLexer(new StringReader(code));
+            PParser parser = new PParser(lexer);
+            file.getErrors().clear();
+            LinkedList<PError> allErrors = new LinkedList<>();
+
+            // Create the tables (types, symbols)
+
+            try {
+                var parserResult = parser.parse();
+                TypesTable typesTable = new TypesTable("Global");
+                typesTable.fillDefaultTypes();
+                var tree = new Tree(((Program) parserResult.value).getAllStatements());
+                allErrors = tree.getErrors();
+                var globalTable = new SymbolTable("Global");
+                tree.setGlobalTable(globalTable);
+                file.setCurrentTree(tree);
+                file.setGlobalTable(globalTable);
+                file.setTypesTable(typesTable);
+
+                for (Statement statement : tree.getStatements()) {
+                    if (statement == null) continue;
+
+                    if (statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) {
+                        var result = statement.execute(tree, globalTable, typesTable);
+//                    if (result instanceof PError) {
+//                        allErrors.add((PError) result);
+//                    }
+                    }
+                }
+
+                //
+                for (Statement statement : tree.getStatements()) {
+                    if (statement == null) continue;
+                    if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
+                        var result = statement.execute(tree, globalTable, typesTable);
+//                    if (result instanceof PError) {
+//                        allErrors.add((PError) result);
+//                    }
+                    }
+                }
+
+            } catch (Exception e) {
+                allErrors.add(new PError("Sintáctico", "Error al analizar el código", 0, 0));
+                e.printStackTrace();
+            }
+
+            allErrors.addAll(lexer.getLexicalErrorList());
+            file.getErrors().addAll(lexer.getLexicalErrorList());
+            allErrors.addAll(parser.getSyntaxErrorList());
+            file.getErrors().addAll(parser.getSyntaxErrorList());
+            String consoleResult = "";
+            if (allErrors.isEmpty()) {
+                // check if the current tab is the one being analyzed
+                    System.out.println("active file index: " + currentSession.getActiveFileIndex() + " file index: " + file.getIndex());
+                if (currentSession.getActiveFileIndex() == file.getIndex()) {
+                    jTextPane1.setText("\n✅ -> Analisis completado sin errores\n");
+                }
+                consoleResult = "\n✅ -> Analisis completado sin errores\n";
+            } else {
+                // check if the current tab is the one being analyzed
+                System.out.println("active file index: " + currentSession.getActiveFileIndex() + " file index: " + file.getIndex());
+                if (currentSession.getActiveFileIndex() == file.getIndex()) {
+                    jTextPane1.setText("\n❌ -> Análisis no fue exitoso - Errores encontrados:\n");
+                    for (PError error : allErrors) {
+                        jTextPane1.setText(jTextPane1.getText() + error.toString() + "\n");
+                    }
+                }
+                consoleResult = "\n❌ -> Análisis no fue exitoso - Errores encontrados:\n";
+                for (PError error : allErrors) {
+                    consoleResult += error.toString() + "\n";
+                }
+                success = false;
+                failedFileNames.add(file.getName());
+            }
+            file.setConsoleOutput(consoleResult);
+        }
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Todos los archivos fueron analizados con éxito", "Análisis completado", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Algunos archivos no pudieron ser analizados, revisar consolas individuales para ver errores: \n"+failedFileNames.toString(), "Análisis no completado", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_analyzeAllCodeBtnActionPerformed
+
+    private void treeMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_treeMenuItemActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_treeMenuItemActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private JButton analyzeAllCodeBtn;
-    private JLabel consoleOutputLabel;
-    private JMenuItem errorsMenuItem;
-    private JLabel fileStatusLabel;
-    private JMenuBar jMenuBar1;
-    private JMenuItem jMenuItem2;
-    private JPanel jPanel1;
-    private JPanel jPanel2;
-    private JScrollPane jScrollPane1;
-    private JToolBar.Separator jSeparator2;
-    private JSplitPane jSplitPane2;
-    private JTabbedPane jTabbedPane1;
-    private JTextPane jTextPane1;
-    private JToolBar jToolBar2;
-    private JButton newFileBtn;
-    private JButton openFileBtn;
-    private JMenu reportsMenu;
-    private JButton runCodeBtn;
-    private JButton saveAsFileBtn;
-    private JButton saveFileBtn;
+    private javax.swing.JButton analyzeAllCodeBtn;
+    private javax.swing.JLabel consoleOutputLabel;
+    private javax.swing.JLabel fileStatusLabel;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JSplitPane jSplitPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JButton newFileBtn;
+    private javax.swing.JButton openFileBtn;
+    private javax.swing.JMenu reportsMenu;
+    private javax.swing.JButton runCodeBtn;
+    private javax.swing.JButton saveAsFileBtn;
+    private javax.swing.JButton saveFileBtn;
+    private javax.swing.JMenuItem symbolsTableMenuItem;
+    private javax.swing.JMenuItem treeMenuItem;
     // End of variables declaration//GEN-END:variables
 }
