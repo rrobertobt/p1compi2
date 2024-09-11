@@ -37,6 +37,10 @@ public class ArrayValue {
         return this.values.get(internalIndex);
     }
 
+    public boolean isValidIndex(int pascalIndex) {
+        return pascalIndex >= lowerBound && pascalIndex <= upperBound;
+    }
+
     public int getTypeId() {
         return typeId;
     }

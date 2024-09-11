@@ -80,6 +80,9 @@ nonterminal LinkedList<Statement> VARIABLE_DECLARATION_BLOCK, VARIABLE_DECLARATI
 nonterminal Statement VARIABLE_DECLARATION;
 nonterminal Integer TYPE;
 
+nonterminal Statement ARRAY_ASSIGNATION;
+nonterminal Statement ARRAY_ACCESS;
+
 
 nonterminal Statement EXPRESSION;
 
@@ -121,6 +124,7 @@ precedence right UNIT_MINUS;
 start with START;
 
 START ::= PROGRAM:a DOT {: RESULT = a; :}
+        | PROGRAM:a {: RESULT = a; errorList.add(new PError("✍ Sintaxis", "Se esperaba un punto al final del programa", -1, -1)); :}
 ;
 
 PROGRAM ::=
@@ -163,9 +167,9 @@ PROGRAM_HEADER ::=
     if (constsList == null) constsList = new LinkedList<>();
     if (varsList == null) varsList = new LinkedList<>();
 
-    var newTypesList = Program.reverseLinkedList(typesList);
+//    var newTypesList = Program.reverseLinkedList(typesList);
 
-    RESULT.getStatements().addAll(newTypesList);
+    RESULT.getStatements().addAll(typesList);
 
     RESULT.getStatements().addAll(constsList);
     RESULT.getStatements().addAll(varsList);
@@ -175,7 +179,11 @@ PROGRAM_HEADER ::=
 
 DECLARATIONS_BLOCK ::=
                 TYPE_DECLARATION_BLOCK:typesList CONSTANT_DECLARATION_BLOCK:constsList VARIABLE_DECLARATION_BLOCK:varsList
-                {: RESULT = new Object[]{typesList, constsList, varsList}; System.out.println("Declarations block: "+typesList.size()+" "+constsList.size()+" "+varsList.size()); :}
+                {:
+                var newTypesList = Program.reverseLinkedList(typesList);
+                RESULT = new Object[]{newTypesList, constsList, varsList};
+                System.out.println("Declarations block: "+typesList.size()+" "+constsList.size()+" "+varsList.size());
+                :}
                 ;
 
 /* this production is for the main program block
@@ -186,6 +194,7 @@ PROGRAM_BODY ::= PROGRAM_BODY:a PROGRAM_BODY_STATEMENT:b {: RESULT = a; a.add(b)
                ;
 
 PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
+                            | ARRAY_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
                             | IF_STATEMENT:a {: RESULT = a; :}
                             | WHILE_STATEMENT:a {: RESULT = a; :}
                             | REPEAT_STATEMENT:a {: RESULT = a; :}
@@ -204,6 +213,7 @@ PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
 //             ;
 
 STATEMENT ::= SYMBOL_ASSIGNATION:a {: RESULT = a; :}
+            | ARRAY_ASSIGNATION:a {: RESULT = a; :}
             | IF_STATEMENT:a {: RESULT = a; :}
             | CASE_STATEMENT
             | WHILE_STATEMENT
@@ -349,8 +359,10 @@ assignations
 */
 
 SYMBOL_ASSIGNATION ::= ID:a COLON EQUALS EXPRESSION:b {: RESULT = new SymbolAssignation(a, b, aleft, aright); :}
-                    | ID OPENBRACKET EXPRESSION CLOSEBRACKET COLON EQUALS EXPRESSION
-;
+                    ;
+
+ARRAY_ASSIGNATION ::= ID:a OPENBRACKET EXPRESSION:b CLOSEBRACKET COLON EQUALS EXPRESSION:c {: RESULT = new ArrayAssignation(a, b, c, aleft, aright); :}
+                    ;
 
 /*
 if, else if, else statements
@@ -667,6 +679,9 @@ EXPRESSION ::=
              | EXPRESSION:a LESSEQUAL EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.LESS_EQUALS, aleft, aright); :}
              | EXPRESSION:a GREATEREQUAL EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.GREATER_EQUALS, aleft, aright); :}
              | EXPRESSION:a LTGT EXPRESSION:b {: RESULT = new Comparison(a, b, ComparisonOperators.NOT_EQUALS, aleft, aright); :}
+
+            // Array access
+             | ID:a OPENBRACKET EXPRESSION:b CLOSEBRACKET {: RESULT = new ArrayAccess(a, b, aleft, aright); :}
 
              // Call to method
              | CALL_TO_METHOD

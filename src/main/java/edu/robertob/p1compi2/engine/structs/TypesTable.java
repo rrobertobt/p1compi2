@@ -146,6 +146,10 @@ public class TypesTable {
             this.maxVal = maxVal;
         }
 
+        public int getBaseTypeId() {
+            return baseTypeId;
+        }
+
         public String toString() {
             return "TypeTableEntry{" +
                     "id=" + id +
