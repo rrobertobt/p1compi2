@@ -18,6 +18,25 @@ public class ArrayValue {
         this.upperBound = upperBound;
     }
 
+    private int convertIndex(int pascalIndex) {
+        if (pascalIndex < lowerBound || pascalIndex > upperBound) {
+            throw new IndexOutOfBoundsException("Index out of range: " + pascalIndex);
+        }
+        return pascalIndex - lowerBound;
+    }
+
+    // Set value at the Pascal index
+    public void set(int pascalIndex, Object value) {
+        int internalIndex = convertIndex(pascalIndex);
+        this.values.set(internalIndex, value);
+    }
+
+    // Get value at the Pascal index
+    public Object get(int pascalIndex) {
+        int internalIndex = convertIndex(pascalIndex);
+        return this.values.get(internalIndex);
+    }
+
     public int getTypeId() {
         return typeId;
     }

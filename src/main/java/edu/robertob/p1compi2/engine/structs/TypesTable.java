@@ -2,6 +2,7 @@ package edu.robertob.p1compi2.engine.structs;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 public class TypesTable {
     private TypesTable parentTable;
@@ -94,6 +95,23 @@ public class TypesTable {
         return this.getType(type.parentTypeId);
     }
 
+    public LinkedList<TypeTableEntry> collectAllEntries() {
+        LinkedList<TypeTableEntry> allEntries = new LinkedList<>();
+        collectEntriesRecursive(this, allEntries);
+        return allEntries;
+    }
+
+    private void collectEntriesRecursive(TypesTable table, LinkedList<TypeTableEntry> allEntries) {
+        allEntries.addAll(table.types.values().stream().map(type -> {
+            TypeTableEntry entry = (TypeTableEntry) type;
+            entry.scopeName = table.name;
+            return entry;
+        }).collect(Collectors.toList()));
+        for (TypesTable child : table.childrenTables) {
+            collectEntriesRecursive(child, allEntries);
+        }
+    }
+
     public static class TypeTableEntry {
         public int id;
         public String name;
@@ -106,9 +124,11 @@ public class TypesTable {
         public Object recordFields;
         public Object minVal;
         public Object maxVal;
+        public String scopeName;
 
 
-        public TypeTableEntry() {}
+        public TypeTableEntry() {
+        }
 
         public TypeTableEntry(
                 int id, String name, int parentTypeId, int size, boolean isArray, boolean isRecord, boolean isRange, Object minVal, Object maxVal
@@ -123,8 +143,23 @@ public class TypesTable {
             this.minVal = minVal;
             this.maxVal = maxVal;
         }
-    }
 
+        public String toString() {
+            return "TypeTableEntry{" +
+                    "id=" + id +
+                    ", name='" + name + '\'' +
+                    ", type='" + type + '\'' +
+                    ", size=" + size +
+                    ", parentTypeId=" + parentTypeId +
+                    ", isArray=" + isArray +
+                    ", isRange=" + isRange +
+                    ", isRecord=" + isRecord +
+                    ", recordFields=" + recordFields +
+                    ", minVal=" + minVal +
+                    ", maxVal=" + maxVal +
+                    '}';
+        }
+    }
 
 
     public void fillDefaultTypes() {
@@ -207,10 +242,10 @@ public class TypesTable {
         REAL(2),
         CHARACTER(3),
         BOOLEAN(4),
-        STRING(5)
-        ;
+        STRING(5);
 
         public final int id;
+
         DefaultTypes(int id) {
             this.id = id;
         }
@@ -223,6 +258,8 @@ public class TypesTable {
         public static final int CHARACTER = 3;
         public static final int BOOLEAN = 4;
         public static final int STRING = 5;
+
+        public static final int[] asArray = {VOID, INTEGER, REAL, CHARACTER, BOOLEAN, STRING};
     }
 
 }

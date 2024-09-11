@@ -14,7 +14,9 @@ public class ButtonTabComponent extends JPanel {
     private final JLabel label;
     public ButtonTabComponent(final JTabbedPane pane, CurrentSession currentSession) {
         //unset default FlowLayout' gaps
+
         super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
         if (pane == null) {
             throw new NullPointerException("TabbedPane is null");
         }
@@ -33,6 +35,7 @@ public class ButtonTabComponent extends JPanel {
             }
         };
         this.label = label;
+        System.out.println("label: " + label);
 
         add(label);
         //add more space between the label and the button
@@ -42,6 +45,34 @@ public class ButtonTabComponent extends JPanel {
         add(button);
         //add more space to the top of the component
         setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+
+        //add an event listener to the buttontab itself to check if it was a middle click to close the tab
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isMiddleMouseButton(e)) {
+                    int i = pane.indexOfTabComponent(ButtonTabComponent.this);
+                    if (i != -1) {
+                        ButtonTabComponent.this.currentSession.removeFile(i);
+                        pane.remove(i);
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension size = super.getPreferredSize();
+        if (label != null) {
+            // Calculate the preferred width based on the label's preferred width
+            size.width = label.getPreferredSize().width + 20; // Add some padding
+        }
+        return size;
+    }
+
+    public void repaintTabButtonLabel(int index) {
+        var title = pane.getTitleAt(index);
     }
 
     private class TabButton extends JButton implements ActionListener {

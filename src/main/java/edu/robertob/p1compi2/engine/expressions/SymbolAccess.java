@@ -18,9 +18,12 @@ public class SymbolAccess extends Statement {
     public Object execute(Tree tree, SymbolTable table, TypesTable typesTable) {
         var value = table.getSymbol(this.id);
         if (value == null) {
-            return new PError("Semantica", "Variable o constante: " + this.id + " no existe", this.line, this.column);
+            tree.addError(new PError("Semantica", "Variable/Constante: " + this.id + " no existe", this.line, this.column));
+            return new PError("Semantica", "Variable/Constante: " + this.id + " no existe", this.line, this.column);
         }
         this.typeId = value.getTypeId();
+        System.out.println("SymbolAccess: " + value.getValue());
+        System.out.println("SymbolAccess: " + value.getTypeId());
         return value.getValue();
     }
 }

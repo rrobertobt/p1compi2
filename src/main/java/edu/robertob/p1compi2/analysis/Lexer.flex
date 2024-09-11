@@ -79,6 +79,7 @@ CHAR = ['][^'][']
 COMMENT_ONE_LINE = \{[^}]*\}
 // format: (* comment *)
 COMMENT_MULTIPLE_LINES = \(\*([^*]|\*+[^)*])*\*+\)
+
 DOT="."
 
 
@@ -175,7 +176,8 @@ RW_READLN="readln"
 
 %%
 
-
+<YYINITIAL> {COMMENT_ONE_LINE} {}
+<YYINITIAL> {COMMENT_MULTIPLE_LINES} {}
 //<YYINITIAL> {XOR} {
 //          return new Symbol(sym.XOR, yyline, yycolumn,yytext());}
 
@@ -283,8 +285,7 @@ RW_READLN="readln"
 <YYINITIAL> {AND} {return new Symbol(sym.AND, yyline, yycolumn,yytext());}
 
 <YYINITIAL> {BLANKS} {}
-<YYINITIAL> {COMMENT_ONE_LINE} {}
-<YYINITIAL> {COMMENT_MULTIPLE_LINES} {}
+
 
 <YYINITIAL> . {
 errorList.add(new PError("Lexico", "El caracter " + yytext() + " no pertenece al lenguaje, en: "+yyline+":"+yycolumn, yyline, yycolumn));

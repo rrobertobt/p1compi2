@@ -20,9 +20,9 @@ public class Program {
         this.headerStatements.addAll(header.getStatements());
 
         this.allStatements = new LinkedList<>();
-        this.allStatements.addAll(header.getStatements());
-        this.allStatements.addAll(this.methodsStatements);
-        this.allStatements.addAll(this.bodyStatements);
+        if (this.headerStatements != null) this.allStatements.addAll(header.getStatements());
+        if (this.methodsStatements != null) this.allStatements.addAll(this.methodsStatements);
+        if (this.bodyStatements != null) this.allStatements.addAll(this.bodyStatements);
     }
 
     public String getName() {

@@ -1,24 +1,40 @@
 package edu.robertob.p1compi2.engine.structs;
 
 import edu.robertob.p1compi2.engine.base.Statement;
+import edu.robertob.p1compi2.engine.statements.FunctionDeclaration;
 
 import java.util.LinkedList;
 
 public class Tree {
     private LinkedList<Statement> statements;
-//    private String console;
     private SymbolTable globalTable;
     public LinkedList<PError> errors;
-//    private HashMap<String, StructDefinition> structs;
-    private LinkedList<Statement> methods;
-//    private int graphNodeCounter = 0;
+    private LinkedList<Statement> functions;
+    private LinkedList<Statement> procedures;
 
     public Tree(LinkedList<Statement> instructions) {
         this.statements = instructions;
         this.globalTable = new SymbolTable("");
         this.errors = new LinkedList<>();
 //        this.structs = new HashMap<>();
-        this.methods = new LinkedList<>();
+        this.functions = new LinkedList<>();
+        this.procedures = new LinkedList<>();
+    }
+
+    public void addFunction(FunctionDeclaration function) {
+        this.functions.add(function);
+    }
+
+    public void addProcedure(FunctionDeclaration procedure) {
+        this.procedures.add(procedure);
+    }
+
+    public LinkedList<Statement> getFunctions() {
+        return functions;
+    }
+
+    public LinkedList<Statement> getProcedures() {
+        return procedures;
     }
 
 //    public void addMethod(Statement method) {
@@ -46,6 +62,10 @@ public class Tree {
 //        return null;
 //    }
 
+    public void addError(PError error) {
+        this.errors.add(error);
+    }
+
     public LinkedList<Statement> getStatements() {
         return statements;
     }
@@ -64,10 +84,6 @@ public class Tree {
 
     public LinkedList<PError> getErrors() {
         return errors;
-    }
-
-    public LinkedList<Statement> getMethods() {
-        return methods;
     }
 
     public void setErrors(LinkedList<PError> errors) {

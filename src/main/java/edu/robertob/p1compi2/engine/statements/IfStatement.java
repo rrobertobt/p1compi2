@@ -31,13 +31,6 @@ public class IfStatement extends Statement {
             if (block.getCondition().getTypeId() != TypesTable.DefaultIds.BOOLEAN) {
                 return new PError("Semantica", "La condición de un bloque if debe ser de tipo booleano", line, column);
             }
-
-            System.out.println("resultCondition: " + resultCondition);
-//            if ((boolean) resultCondition) {
-//                var newTable = new SymbolTable(table);
-//                table.getChildren().add(newTable);
-//                newTable.setName("IF@" + line + ":" + column);
-
                 for (var instruction : block.getBody()) {
                     var result = instruction.execute(tree, table, typesTable);
                     if (result instanceof PError || result instanceof Break || result instanceof Continue)
@@ -49,10 +42,6 @@ public class IfStatement extends Statement {
         }
 
         if (elseBody != null) {
-//            SymbolTable elseTable = new SymbolTable(table);
-//            table.getChildren().add(elseTable);
-//            elseTable.setName("ELSE@" + line + ":" + column);
-
             for (var instruction : elseBody) {
                 var result = instruction.execute(tree, table, typesTable);
                 if (result instanceof PError || result instanceof Break || result instanceof Continue) return result;

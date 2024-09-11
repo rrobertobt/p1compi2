@@ -8,7 +8,7 @@ public class SymbolAssignation extends Statement {
     private Statement newValue;
 
     public SymbolAssignation(String id, Statement newValue, int line, int column) {
-        super(-1, line, column);
+        super(0, line, column);
         this.id = id;
         this.newValue = newValue;
     }
@@ -17,14 +17,14 @@ public class SymbolAssignation extends Statement {
     public Object execute(Tree tree, SymbolTable table, TypesTable typesTable) {
         SymbolVariable symbol = table.getSymbol(id);
         if (symbol == null) {
-            return new PError("Semantica", "Variable " + id + " no existe", this.line, this.column);
+            var error = new PError("Semantica", "Variable " + id + " no existe", this.line, this.column);
+            tree.addError(error);
+            return error;
         }
 
         Object result = this.newValue.execute(tree, table, typesTable);
 
         if (result instanceof PError) return result;
-
-
 
         // edge cases:
         // if the symbol is boolean, it can accept 0 as false and any other value as true so we convert it to boolean
@@ -35,16 +35,18 @@ public class SymbolAssignation extends Statement {
             }
         }
 
-        // check first if the symbol type has a parent type and the new value has the same parent type
-        // example: type mystringtype is string; var a: mystringtype = "hello";
-        if (typesTable.getType(symbol.getTypeId()).parentTypeId != -1) {
-            if (typesTable.getType(symbol.getTypeId()).parentTypeId != this.newValue.getTypeId())
-                return new PError("Semantica", "No se puede asignar el valor de tipo " + typesTable.getType(this.newValue.getTypeId()).name + " a una variable de tipo " + typesTable.getType(symbol.getTypeId()).name, this.line, this.column);
-        } else if (symbol.getTypeId() != this.newValue.getTypeId())
-            return new PError("Semantica", "No se puede asignar el valor de tipo " + typesTable.getType(this.newValue.getTypeId()).name + " a una variable de tipo " + typesTable.getType(symbol.getTypeId()).name, this.line, this.column);
+        if (symbol.getTypeId() != this.newValue.getTypeId()) {
+            var err = new PError("Semantica", "No se puede asignar el valor de tipo " + typesTable.getType(this.newValue.getTypeId()).name + " a una variable de tipo " + typesTable.getType(symbol.getTypeId()).name + "(" + typesTable.getType(symbol.getOriginalTypeId()).name + ")", this.line, this.column);
+            tree.addError(err);
+            return err;
+        }
 
-        if(symbol.isConstant())
-            return new PError("Semantica", "Variable constante " + id + " no puede ser re-asignada", this.line, this.column);
+        if(symbol.isConstant()) {
+            var error = new PError("Semantica", "Variable constante " + id + " no puede ser re-asignada", this.line, this.column);
+            tree.addError(error);
+            return error;
+        }
+
 
         symbol.setValue(result);
         return null;

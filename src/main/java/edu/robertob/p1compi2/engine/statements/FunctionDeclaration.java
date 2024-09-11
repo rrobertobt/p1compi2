@@ -6,21 +6,24 @@ import edu.robertob.p1compi2.engine.structs.*;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class MethodDeclaration extends Statement {
+public class FunctionDeclaration extends Statement {
     private String id;
     private LinkedList<HashMap> params;
     private LinkedList<Statement> header;
     private LinkedList<Statement> methodBody;
     private String returnTypeName;
-    private String returnTypeId;
+    private int returnTypeId;
+    private int originalReturnTypeId;
 
 
-    public MethodDeclaration(int typeId, int line, int column, String id, LinkedList<HashMap> params, LinkedList<Statement> header, LinkedList<Statement> methodBody, String returnTypeName, String returnTypeId) {
+    public FunctionDeclaration(int typeId, int line, int column, String id, LinkedList<HashMap> params, LinkedList<Statement> header, LinkedList<Statement> methodBody, String returnTypeName, int returnTypeId) {
         super(typeId, line, column);
         this.id = id;
         this.params = params;
         this.header = header;
         this.methodBody = methodBody;
+        this.returnTypeName = returnTypeName;
+        this.returnTypeId = returnTypeId;
     }
 
     @Override
@@ -29,6 +32,7 @@ public class MethodDeclaration extends Statement {
             if (i != null) {
                 var result = i.execute(tree, table, typesTable);
                 if (result instanceof PError) {
+                    tree.addError((PError) result);
                     return result;
                 }
                 if (result != null) {

@@ -25,7 +25,7 @@ public class TypeDeclaration extends Statement {
         super(-1, line, column);
         this.names = names;
         this.parentTypeId = parentTypeId;
-        this.isArray = isArray;
+          this.isArray = isArray;
         this.isRange = isRange;
         this.isRecord = isRecord;
         this.size = size;
@@ -60,6 +60,14 @@ public class TypeDeclaration extends Statement {
         } else if (!isArray && !isRange && !isRecord && (parentTypeName != null)) {
             for (String name : names) {
                 var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, typesTable.getType(parentTypeName).id, size, isArray, isRecord, isRange, null, null);
+                boolean created = typesTable.setType(newType);
+                if (!created) {
+                    return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);
+                }
+            }
+        } else if (isArray || isRange) {
+            for (String name : names) {
+                var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, size, isArray, isRecord, isRange, start, end);
                 boolean created = typesTable.setType(newType);
                 if (!created) {
                     return new PError("Semantica", "Tipo " + name + " ya está declarado", this.line, this.column);

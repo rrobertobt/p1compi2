@@ -46,6 +46,6 @@ public class PError {
     }
 
     public String toString(){
-        return "!> Error: " + this.type + " - " + this.description + " en: " + this.line + " column: " + this.column;
+        return this.type + " - " + this.description + " en: " + this.line + " column: " + this.column;
     }
 }

@@ -8,6 +8,14 @@ public class SymbolVariable {
     private boolean constant;
     private int line;
     private int column;
+    private int originalTypeId;
+
+    private boolean isArray;
+    private boolean isRange;
+    private boolean isRecord;
+
+    private Object minVal;
+    private Object maxVal;
 
     public SymbolVariable(int typeId, String id) {
         this.typeId = typeId;
@@ -86,5 +94,53 @@ public class SymbolVariable {
 
     public void setColumn(int column) {
         this.column = column;
+    }
+
+    public int getOriginalTypeId() {
+        return originalTypeId;
+    }
+
+    public void setOriginalTypeId(int originalTypeId) {
+        this.originalTypeId = originalTypeId;
+    }
+
+    public boolean isArray() {
+        return isArray;
+    }
+
+    public void setArray(boolean array) {
+        isArray = array;
+    }
+
+    public boolean isRange() {
+        return isRange;
+    }
+
+    public void setRange(boolean range) {
+        isRange = range;
+    }
+
+    public boolean isRecord() {
+        return isRecord;
+    }
+
+    public void setRecord(boolean record) {
+        isRecord = record;
+    }
+
+    public Object getMinVal() {
+        return minVal;
+    }
+
+    public void setMinVal(Object minVal) {
+        this.minVal = minVal;
+    }
+
+    public Object getMaxVal() {
+        return maxVal;
+    }
+
+    public void setMaxVal(Object maxVal) {
+        this.maxVal = maxVal;
     }
 }

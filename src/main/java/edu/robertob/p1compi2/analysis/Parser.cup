@@ -89,6 +89,7 @@ nonterminal Statement SYMBOL_ASSIGNATION;
 nonterminal Statement IF_STATEMENT;
 nonterminal LinkedList<IfStatement.ConditionBlock> ELSE_IF_BLOCKS;
 nonterminal IfStatement.ConditionBlock ELSE_IF_BLOCK;
+nonterminal LinkedList<Statement> opt_else_part, statement_or_program_body;
 
 nonterminal Statement CASE_STATEMENT, CASE_ELEMENT_LIST, CASE_ELEMENT, CASE_VALUE_LIST, CASE_ELSE, CASE_VALUE;
 
@@ -101,7 +102,8 @@ nonterminal HashMap<String, Object> PARAMETER_DECLARATION;
 nonterminal Statement PROCEDURE_DECLARATION_BLOCK;
 nonterminal Object[] PROCEDURE_DECLARATION_START;
 nonterminal Statement WRITELN_CALL, READLN_CALL;
-nonterminal Statement PROCEDURE_FUNCTION_DECLARATIONS, PROCEDURE_FUNCTION_DECLARATION;
+nonterminal Statement PROCEDURE_FUNCTION_DECLARATION;
+nonterminal LinkedList<Statement> PROCEDURE_FUNCTION_DECLARATIONS;
 
 nonterminal Statement CALL_TO_METHOD, CALL_ARGUMENTS, ARGUMENT;
 
@@ -118,29 +120,41 @@ precedence right UNIT_MINUS;
 
 start with START;
 
-START ::= PROGRAM:a {: RESULT = a; :}
+START ::= PROGRAM:a DOT {: RESULT = a; :}
 ;
 
 PROGRAM ::=
-    PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS RW_BEGIN PROGRAM_BODY:b RW_END {:
-    RESULT = new Program(a,null,b);
+    // with functions and body
+    PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS:c RW_BEGIN PROGRAM_BODY:b RW_END {:
+        RESULT = new Program(a,c,b);
     :}
+    // only body
     |
     PROGRAM_HEADER:a RW_BEGIN PROGRAM_BODY:b RW_END {:
         RESULT = new Program(a,null,b);
-        :}
+    :}
+    |
+    // only functions
+    PROGRAM_HEADER:a PROCEDURE_FUNCTION_DECLARATIONS:c RW_BEGIN RW_END {:
+        RESULT = new Program(a,c,null);
+    :}
+    |
+    // no functions, no body
+    PROGRAM_HEADER:a RW_BEGIN RW_END {:
+        RESULT = new Program(a,null,null);
+    :}
 ;
 
-PROCEDURE_FUNCTION_DECLARATIONS ::= PROCEDURE_FUNCTION_DECLARATIONS PROCEDURE_FUNCTION_DECLARATION
-                                  | PROCEDURE_FUNCTION_DECLARATION
+PROCEDURE_FUNCTION_DECLARATIONS ::= PROCEDURE_FUNCTION_DECLARATIONS:a PROCEDURE_FUNCTION_DECLARATION:b {: RESULT = a; a.add(b); :}
+                                  | PROCEDURE_FUNCTION_DECLARATION:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
                                   ;
 
-PROCEDURE_FUNCTION_DECLARATION ::= FUNCTION_DECLARATION_BLOCK
+PROCEDURE_FUNCTION_DECLARATION ::= FUNCTION_DECLARATION_BLOCK:a {: RESULT = a; :}
                             | PROCEDURE_DECLARATION_BLOCK
                             ;
 
 PROGRAM_HEADER ::=
-    RW_PROGRAM ID:a DECLARATIONS_BLOCK:b {:
+    RW_PROGRAM ID:a SEMICOLON DECLARATIONS_BLOCK:b {:
     RESULT = new Program.ProgramHeader(aleft, aright, a);
     var typesList = (LinkedList<TypeDeclaration>)b[0];
     var constsList = (LinkedList<Statement>)b[1];
@@ -166,25 +180,25 @@ because we need to handle special things like semicolons inside if blocks, etc.
 */
 PROGRAM_BODY ::= PROGRAM_BODY:a PROGRAM_BODY_STATEMENT:b {: RESULT = a; a.add(b); :}
                | PROGRAM_BODY_STATEMENT:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
-              ;
+               ;
 
 PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
                             | IF_STATEMENT:a {: RESULT = a; :}
-                            | CASE_STATEMENT
-                            | WHILE_STATEMENT
-                            | REPEAT_STATEMENT
-                            | FOR_STATEMENT
-                            | RW_BREAK SEMICOLON
-                            | RW_CONTINUE SEMICOLON
+                            | WHILE_STATEMENT:a {: RESULT = a; :}
+                            | REPEAT_STATEMENT:a {: RESULT = a; :}
+                            | FOR_STATEMENT:a {: RESULT = a; :}
+                            | RW_BREAK:a SEMICOLON {: RESULT = new Break(aleft, aright); :}
+                            | RW_CONTINUE:a SEMICOLON {: RESULT = new Continue(aleft, aright); :}
                             | CALL_TO_METHOD SEMICOLON
+                            | CASE_STATEMENT
                             | WRITELN_CALL SEMICOLON
                             | READLN_CALL SEMICOLON
                             ;
-
-STATEMENTS ::= STATEMENTS SEMICOLON STATEMENT
-             | STATEMENT
-             | /* empty */
-             ;
+//
+//STATEMENTS ::= STATEMENTS SEMICOLON STATEMENT
+//             | STATEMENT
+//             | /* empty */
+//             ;
 
 STATEMENT ::= SYMBOL_ASSIGNATION:a {: RESULT = a; :}
             | IF_STATEMENT:a {: RESULT = a; :}
@@ -475,23 +489,33 @@ CASE_VALUE_LIST ::= CASE_VALUE_LIST COMMA EXPRESSION
                   ;
 
 /* Define the optional else part of the case statement more explicitly */
-CASE_ELSE ::= RW_ELSE STATEMENT SEMICOLON
-            | RW_ELSE RW_BEGIN PROGRAM_BODY RW_END
+CASE_ELSE ::= RW_ELSE STATEMENT SEMICOLON %prec RW_ELSE
+            | RW_ELSE RW_BEGIN PROGRAM_BODY RW_END %prec RW_ELSE
             ;
 
 /*
 while loop
 */
 
-WHILE_STATEMENT ::= RW_WHILE OPENPAR EXPRESSION CLOSEPAR RW_DO STATEMENT SEMICOLON
-                  | RW_WHILE OPENPAR EXPRESSION CLOSEPAR RW_DO RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+WHILE_STATEMENT ::= RW_WHILE OPENPAR EXPRESSION:a CLOSEPAR RW_DO STATEMENT:b SEMICOLON {:
+    var statementAsList = new LinkedList<Statement>();
+    statementAsList.add(b);
+    RESULT = new WhileLoop(a, statementAsList, aleft, aright);
+    :}
+
+    | RW_WHILE OPENPAR EXPRESSION:a CLOSEPAR RW_DO RW_BEGIN PROGRAM_BODY:b RW_END SEMICOLON {:
+    RESULT = new WhileLoop(a, b, aleft, aright);
+    :}
                   ;
 
 /*
 * repeat until loop
 */
 
-REPEAT_STATEMENT ::= RW_REPEAT PROGRAM_BODY RW_UNTIL EXPRESSION SEMICOLON
+REPEAT_STATEMENT ::= RW_REPEAT PROGRAM_BODY:a RW_UNTIL EXPRESSION:b SEMICOLON
+                    {:
+                    RESULT = new RepeatLoop(b, a, aleft, aright);
+                    :}
                     ;
 
 /*
@@ -510,8 +534,8 @@ FOR_STATEMENT ::= RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO STATE
 
 
 FUNCTION_DECLARATION_START ::=
-    RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON TYPE:c SEMICOLON {: RESULT = new Object[]{a, b, c}; :}
-  | RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON ID:c SEMICOLON {: RESULT = new Object[]{a, b, c}; :}
+    RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON TYPE:c SEMICOLON {: RESULT = new Object[]{a, b, c, null}; :}
+  | RW_FUNCTION ID:a OPENPAR PARAMETERS_DECLARATION:b CLOSEPAR COLON ID:c SEMICOLON {: RESULT = new Object[]{a, b, -1, c}; :}
   // no params
     | RW_FUNCTION ID:a COLON TYPE:b SEMICOLON {: RESULT = new Object[]{a, new LinkedList<>(), b}; :}
 ;
@@ -530,16 +554,17 @@ allHeaderStatements.addAll(typesList);
 allHeaderStatements.addAll(constsList);
 allHeaderStatements.addAll(varsList);
 
-//RESULT = new MethodDeclaration(
-//    -1, // typeId
-//     aleft, // line
-//     aright, // column
-//     (String)a[0], // id
-//     (LinkedList<HashMap>)a[1], // params
-//     allHeaderStatements, // header
-//     (LinkedList<Statement>)c, // methodBody
-//     (String)a[2], // returnTypeName
-//      -1);
+RESULT = new FunctionDeclaration(
+    0,
+    aleft,
+    aright,
+    (String)a[0],
+    (LinkedList<HashMap>)a[1],
+    allHeaderStatements,
+    c,
+    (String)a[2],
+    (int)a[3]
+    );
    :}
 ;
 

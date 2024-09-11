@@ -7,6 +7,7 @@ package edu.robertob.p1compi2.data;
 import edu.robertob.p1compi2.engine.structs.PError;
 import edu.robertob.p1compi2.engine.structs.SymbolTable;
 import edu.robertob.p1compi2.engine.structs.Tree;
+import edu.robertob.p1compi2.engine.structs.TypesTable;
 
 import javax.swing.*;
 import java.io.File;
@@ -29,6 +30,7 @@ public class PFile {
     private String consoleOutput;
     private LinkedList<PError> errors = new LinkedList<>();
     private SymbolTable globalTable;
+    private TypesTable typesTable;
     private Tree currentTree;
 
     public PFile(String name, String systemPath, String content, boolean saved, int index) {
@@ -150,5 +152,13 @@ public class PFile {
 
     public Tree getCurrentTree() {
         return this.currentTree;
+    }
+
+    public void setTypesTable(TypesTable typesTable) {
+        this.typesTable = typesTable;
+    }
+
+    public TypesTable getTypesTable() {
+        return this.typesTable;
     }
 }

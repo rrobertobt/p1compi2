@@ -1,6 +1,5 @@
 package edu.robertob.p1compi2.view;
 
-
 import edu.robertob.p1compi2.analysis.PLexer;
 import edu.robertob.p1compi2.analysis.PParser;
 import edu.robertob.p1compi2.data.CurrentSession;
@@ -12,13 +11,15 @@ import edu.robertob.p1compi2.engine.statements.VariableDeclaration;
 import edu.robertob.p1compi2.engine.structs.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.LinkedList;
 
@@ -28,6 +29,7 @@ import java.util.LinkedList;
 public class MainFrame extends JFrame {
 
     CurrentSession currentSession = new CurrentSession();
+    TypesReportFrame typesReportFrame = new TypesReportFrame();
 //    SymbolsReportFrame symbolsReportFrame = new SymbolsReportFrame();
 //    ErrorsReportFrame errorsReportFrame = new ErrorsReportFrame();
 
@@ -42,12 +44,21 @@ public class MainFrame extends JFrame {
 
         consoleOutputLabel.setFont(consoleOutputLabel.getFont().deriveFont(Font.BOLD));
 
-        // set monospaced font for the console output, and also set the font size
-//        jTextPane1.setFont(new Font("Monospaced", Font.PLAIN, 14));
-//        jTextPane1.setFont(new Font("JetBrainsMono Nerd Font", Font.PLAIN, 14));
-        jTextPane1.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 14));
+        jTextPane1.setFont(new Font("monospaced", Font.PLAIN, 14));
         jSplitPane2.setDividerLocation(0.5);
         jSplitPane2.setResizeWeight(0.5);
+
+        // create a keyboard shortcut listener for the run button (ctrl+R, ctrl+ENTER)
+        runCodeBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK), "runCode");
+        runCodeBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "runCode");
+
+        runCodeBtn.getActionMap().put("runCode", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            if (currentSession.getActiveFileIndex() != -1)
+                runCodeBtn.doClick();
+            }
+        });
     }
 
     /**
@@ -59,121 +70,134 @@ public class MainFrame extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jToolBar2 = new javax.swing.JToolBar();
-        newFileBtn = new javax.swing.JButton();
-        openFileBtn = new javax.swing.JButton();
-        saveFileBtn = new javax.swing.JButton();
-        saveAsFileBtn = new javax.swing.JButton();
-        jSeparator2 = new javax.swing.JToolBar.Separator();
-        runCodeBtn = new javax.swing.JButton();
-        fileStatusLabel = new javax.swing.JLabel();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jPanel1 = new javax.swing.JPanel();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        jPanel2 = new javax.swing.JPanel();
-        consoleOutputLabel = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        reportsMenu = new javax.swing.JMenu();
-        errorsMenuItem = new javax.swing.JMenuItem();
-        jMenuItem2 = new javax.swing.JMenuItem();
+        jToolBar2 = new JToolBar();
+        newFileBtn = new JButton();
+        openFileBtn = new JButton();
+        saveFileBtn = new JButton();
+        saveAsFileBtn = new JButton();
+        jSeparator2 = new JToolBar.Separator();
+        fileStatusLabel = new JLabel();
+        runCodeBtn = new JButton();
+        analyzeAllCodeBtn = new JButton();
+        jSplitPane2 = new JSplitPane();
+        jPanel1 = new JPanel();
+        jTabbedPane1 = new JTabbedPane();
+        jPanel2 = new JPanel();
+        consoleOutputLabel = new JLabel();
+        jScrollPane1 = new JScrollPane();
+        jTextPane1 = new JTextPane();
+        jMenuBar1 = new JMenuBar();
+        reportsMenu = new JMenu();
+        errorsMenuItem = new JMenuItem();
+        jMenuItem2 = new JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new java.awt.Color(252, 252, 252));
-        setPreferredSize(new java.awt.Dimension(800, 800));
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new Color(252, 252, 252));
 
-        jToolBar2.setBackground(new java.awt.Color(255, 255, 255));
+        jToolBar2.setBackground(new Color(255, 255, 255));
         jToolBar2.setBorderPainted(false);
         jToolBar2.setEnabled(false);
 
-        newFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
+        newFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-plus.png"))); // NOI18N
         newFileBtn.setText("Nuevo archivo");
         newFileBtn.setFocusable(false);
-        newFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        newFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        newFileBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        newFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        newFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        newFileBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 newFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(newFileBtn);
 
-        openFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
+        openFileBtn.setIcon(new ImageIcon(getClass().getResource("/file-import.png"))); // NOI18N
         openFileBtn.setText("Abrir archivo");
         openFileBtn.setFocusable(false);
-        openFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        openFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        openFileBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        openFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        openFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        openFileBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 openFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(openFileBtn);
 
-        saveFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/download.png"))); // NOI18N
+        saveFileBtn.setIcon(new ImageIcon(getClass().getResource("/download.png"))); // NOI18N
         saveFileBtn.setText("Guardar");
         saveFileBtn.setEnabled(false);
         saveFileBtn.setFocusable(false);
-        saveFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        saveFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        saveFileBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        saveFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        saveFileBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 saveFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(saveFileBtn);
 
-        saveAsFileBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-download.png"))); // NOI18N
+        saveAsFileBtn.setIcon(new ImageIcon(getClass().getResource("/download.png"))); // NOI18N
         saveAsFileBtn.setText("Guardar como...");
         saveAsFileBtn.setEnabled(false);
         saveAsFileBtn.setFocusable(false);
-        saveAsFileBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        saveAsFileBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        saveAsFileBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveAsFileBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        saveAsFileBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        saveAsFileBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 saveAsFileBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(saveAsFileBtn);
 
-        jSeparator2.setBackground(new java.awt.Color(204, 204, 204));
-        jSeparator2.setForeground(new java.awt.Color(0, 0, 0));
+        jSeparator2.setBackground(new Color(204, 204, 204));
+        jSeparator2.setForeground(new Color(0, 0, 0));
         jSeparator2.setOpaque(true);
-        jSeparator2.setSeparatorSize(new java.awt.Dimension(1, 30));
+        jSeparator2.setSeparatorSize(new Dimension(1, 30));
         jToolBar2.add(jSeparator2);
+        jToolBar2.add(fileStatusLabel);
 
-        runCodeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
-        runCodeBtn.setText("Analizar");
+        runCodeBtn.setIcon(new ImageIcon(getClass().getResource("/player-play.png"))); // NOI18N
+        runCodeBtn.setText("Ejecutar");
         runCodeBtn.setEnabled(false);
         runCodeBtn.setFocusable(false);
-        runCodeBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        runCodeBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        runCodeBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        runCodeBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        runCodeBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        runCodeBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 runCodeBtnActionPerformed(evt);
             }
         });
         jToolBar2.add(runCodeBtn);
-        jToolBar2.add(fileStatusLabel);
 
-        jSplitPane2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        analyzeAllCodeBtn.setIcon(new ImageIcon(getClass().getResource("/player-next.png"))); // NOI18N
+        analyzeAllCodeBtn.setText("Analizar todos");
+        analyzeAllCodeBtn.setEnabled(false);
+        analyzeAllCodeBtn.setFocusable(false);
+        analyzeAllCodeBtn.setHorizontalTextPosition(SwingConstants.CENTER);
+        analyzeAllCodeBtn.setVerticalTextPosition(SwingConstants.BOTTOM);
+        analyzeAllCodeBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                analyzeAllCodeBtnActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(analyzeAllCodeBtn);
 
-        jTabbedPane1.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        jSplitPane2.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+        jTabbedPane1.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent evt) {
                 jTabbedPane1StateChanged(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(jTabbedPane1)
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
+            jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1, GroupLayout.DEFAULT_SIZE, 696, Short.MAX_VALUE)
         );
 
         jSplitPane2.setLeftComponent(jPanel1);
@@ -183,48 +207,48 @@ public class MainFrame extends JFrame {
         jTextPane1.setEditable(false);
         jScrollPane1.setViewportView(jTextPane1);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(consoleOutputLabel)
-                .addContainerGap(663, Short.MAX_VALUE))
+                .addContainerGap(675, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+            jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(consoleOutputLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 543, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE))
         );
 
         jSplitPane2.setRightComponent(jPanel2);
 
-        jMenuBar1.setBackground(new java.awt.Color(252, 252, 252));
+        jMenuBar1.setBackground(new Color(252, 252, 252));
         jMenuBar1.setBorder(null);
-        jMenuBar1.setFont(new java.awt.Font("Helvetica Neue", 0, 15)); // NOI18N
+        jMenuBar1.setFont(new Font("Helvetica Neue", 0, 15)); // NOI18N
 
         reportsMenu.setText("Reportes");
         reportsMenu.setEnabled(false);
 
-        errorsMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-sad.png"))); // NOI18N
+        errorsMenuItem.setIcon(new ImageIcon(getClass().getResource("/file-sad.png"))); // NOI18N
         errorsMenuItem.setText("Ver errores");
-        errorsMenuItem.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        errorsMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
 //                errorsMenuItemActionPerformed(evt);
             }
         });
         reportsMenu.add(errorsMenuItem);
 
-        jMenuItem2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/file-code.png"))); // NOI18N
+        jMenuItem2.setIcon(new ImageIcon(getClass().getResource("/file-code.png"))); // NOI18N
         jMenuItem2.setText("Ver tabla de simbolos");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-//                jMenuItem2ActionPerformed(evt);
+        jMenuItem2.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
             }
         });
         reportsMenu.add(jMenuItem2);
@@ -233,23 +257,19 @@ public class MainFrame extends JFrame {
 
         setJMenuBar(jMenuBar1);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(jToolBar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jSplitPane2)
-                .addContainerGap())
+            layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+            .addComponent(jToolBar2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jSplitPane2, GroupLayout.Alignment.LEADING)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane2)
-                .addContainerGap())
+                .addComponent(jToolBar2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSplitPane2, GroupLayout.DEFAULT_SIZE, 698, Short.MAX_VALUE))
         );
 
         pack();
@@ -270,8 +290,8 @@ public class MainFrame extends JFrame {
         var tln = new TextLineNumber(textPane, 3);
         scrollPane.setRowHeaderView(tln);
 
-//        textPane.setFont(new Font("Monospaced", Font.PLAIN, 15));
-        textPane.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 15));
+//        textPane.setFont(new Font("monospacedd", Font.PLAIN, 15));
+        textPane.setFont(new Font("monospaced", Font.PLAIN, 15));
 
         jTabbedPane1.add(name, scrollPane);
         jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
@@ -281,50 +301,56 @@ public class MainFrame extends JFrame {
         switchTabAndSetDocumentListener(sessionFile, textPane);
     }//GEN-LAST:event_newFileBtnActionPerformed
 
-    private void switchTabAndSetDocumentListener( PFile sessionFile, JTextArea textArea) {
+    private void switchTabAndSetDocumentListener( PFile sessionFile, JTextPane textArea) {
         jTabbedPane1.setSelectedIndex(jTabbedPane1.getTabCount() - 1);
+        final String UNDO_ACTION = "Undo";
+        final String REDO_ACTION = "Redo";
 
-        textArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                sessionFile.setContent(textArea.getText());
+        final var undoMgr = new UndoManager();
 
-                if (sessionFile.isSaved()) {
-                    sessionFile.setSaved(false);
-                    MainFrame.this.jTabbedPane1.setTitleAt(sessionFile.getIndex(), "*" + sessionFile.getName());
-                    MainFrame.this.fileStatusLabel.setText("Modificado");
-                    MainFrame.this.fileStatusLabel.setFont(MainFrame.this.fileStatusLabel.getFont().deriveFont(Font.BOLD));
-                }
+        // Add listener for undoable events
+        textArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
+            public void undoableEditHappened(UndoableEditEvent pEvt) {
+                undoMgr.addEdit(pEvt.getEdit());
             }
+        });
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                sessionFile.setContent(textArea.getText());
-
-                if (sessionFile.isSaved()) {
-                    sessionFile.setSaved(false);
-                    MainFrame.this.jTabbedPane1.setTitleAt(sessionFile.getIndex(), "*" + sessionFile.getName());
-                    MainFrame.this.fileStatusLabel.setText("Modificado");
-                    MainFrame.this.fileStatusLabel.setFont(MainFrame.this.fileStatusLabel.getFont().deriveFont(Font.BOLD));
-                }
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                sessionFile.setContent(textArea.getText());
-
-                if (sessionFile.isSaved()) {
-                    sessionFile.setSaved(false);
-                    MainFrame.this.jTabbedPane1.setTitleAt(sessionFile.getIndex(), "*" + sessionFile.getName());
-                    MainFrame.this.fileStatusLabel.setText("Modificado");
-                    MainFrame.this.fileStatusLabel.setFont(MainFrame.this.fileStatusLabel.getFont().deriveFont(Font.BOLD));
+        // Add undo/redo actions
+        textArea.getActionMap().put(UNDO_ACTION, new AbstractAction(UNDO_ACTION) {
+            public void actionPerformed(ActionEvent pEvt) {
+                try {
+                    if (undoMgr.canUndo()) {
+                        undoMgr.undo();
+                    }
+                } catch (CannotUndoException e) {
+                    e.printStackTrace();
                 }
             }
         });
-    }
+        textArea.getActionMap().put(REDO_ACTION, new AbstractAction(REDO_ACTION) {
+            public void actionPerformed(ActionEvent pEvt) {
+                try {
+                    if (undoMgr.canRedo()) {
+                        undoMgr.redo();
+                    }
+                } catch (CannotRedoException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-    private void switchTabAndSetDocumentListener( PFile sessionFile, JTextPane textArea) {
-        jTabbedPane1.setSelectedIndex(jTabbedPane1.getTabCount() - 1);
+        // Create keyboard accelerators for undo/redo actions (Ctrl+Z/Ctrl+Y)
+        textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK),
+                UNDO_ACTION);
+        textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK),
+                REDO_ACTION);
+
+        // using 'meta' for mac
+        textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.META_DOWN_MASK),
+                UNDO_ACTION);
+        textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.META_DOWN_MASK),
+                REDO_ACTION);
+
 
         textArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -334,6 +360,7 @@ public class MainFrame extends JFrame {
                 if (sessionFile.isSaved()) {
                     sessionFile.setSaved(false);
                     MainFrame.this.jTabbedPane1.setTitleAt(sessionFile.getIndex(), "*" + sessionFile.getName());
+
                     MainFrame.this.fileStatusLabel.setText("Modificado");
                     MainFrame.this.fileStatusLabel.setFont(MainFrame.this.fileStatusLabel.getFont().deriveFont(Font.BOLD));
                 }
@@ -346,6 +373,7 @@ public class MainFrame extends JFrame {
                 if (sessionFile.isSaved()) {
                     sessionFile.setSaved(false);
                     MainFrame.this.jTabbedPane1.setTitleAt(sessionFile.getIndex(), "*" + sessionFile.getName());
+
                     MainFrame.this.fileStatusLabel.setText("Modificado");
                     MainFrame.this.fileStatusLabel.setFont(MainFrame.this.fileStatusLabel.getFont().deriveFont(Font.BOLD));
                 }
@@ -388,14 +416,14 @@ public class MainFrame extends JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            var textArea = new JTextArea(content);
+            var undoManager = new UndoManager();
             var textPane = new JTextPane();
             textPane.setText(content);
             var scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             var tln = new TextLineNumber(textPane, 3);
             scrollPane.setRowHeaderView(tln);
 
-            textPane.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 15));
+            textPane.setFont(new Font("monospaced", Font.PLAIN, 15));
 
             jTabbedPane1.add(name, scrollPane);
             jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
@@ -415,6 +443,7 @@ public class MainFrame extends JFrame {
             saveFileBtn.setEnabled(false);
             saveAsFileBtn.setEnabled(false);
             runCodeBtn.setEnabled(false);
+            analyzeAllCodeBtn.setEnabled(false);
             reportsMenu.setEnabled(false);
             return;
         }
@@ -432,6 +461,7 @@ public class MainFrame extends JFrame {
         saveFileBtn.setEnabled(true);
         saveAsFileBtn.setEnabled(true);
         runCodeBtn.setEnabled(true);
+        analyzeAllCodeBtn.setEnabled(true);
         reportsMenu.setEnabled(true);
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
@@ -480,9 +510,12 @@ public class MainFrame extends JFrame {
             TypesTable typesTable = new TypesTable("Global");
             typesTable.fillDefaultTypes();
             var tree = new Tree(((Program) parserResult.value).getAllStatements());
+            allErrors = tree.getErrors();
             var globalTable = new SymbolTable("Global");
             tree.setGlobalTable(globalTable);
             currentSession.getActiveFile().setCurrentTree(tree);
+            currentSession.getActiveFile().setGlobalTable(globalTable);
+            currentSession.getActiveFile().setTypesTable(typesTable);
 
             //todo: 3 passes through the tree (when methods are implemented):
             // 1. get all the functions and their parameters, also structs
@@ -494,9 +527,9 @@ public class MainFrame extends JFrame {
 
                 if (statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration) {
                     var result = statement.execute(tree, globalTable, typesTable);
-                    if (result instanceof PError) {
-                        allErrors.add((PError) result);
-                    }
+//                    if (result instanceof PError) {
+//                        allErrors.add((PError) result);
+//                    }
                 }
             }
 
@@ -504,20 +537,20 @@ public class MainFrame extends JFrame {
             for (Statement statement : tree.getStatements()){
                 if (statement == null) continue;
                 if (!(statement instanceof TypeDeclaration || statement instanceof ConstantDeclaration || statement instanceof VariableDeclaration)) {
-                    System.out.println(statement);
                     var result = statement.execute(tree, globalTable, typesTable);
-                    if (result instanceof PError) {
-                        allErrors.add((PError) result);
-                    }
+//                    if (result instanceof PError) {
+//                        allErrors.add((PError) result);
+//                    }
                 }
             }
 
-            // testing, print the types table
-//            for (var entry : typesTable.getTypes().entrySet()) {
-//                System.out.println(entry.getKey() + " -> " + entry.getValue());
-//            }
-//            jTextPane1.setText(tree);
+            var alltypes = typesTable.collectAllEntries();
+            for (var type : alltypes) {
+                System.out.println(type.toString());
+            }
+
         } catch (Exception e) {
+            allErrors.add(new PError("Sintáctico", "Error al analizar el código", 0, 0));
             e.printStackTrace();
         }
         jTextPane1.setText("");
@@ -526,9 +559,9 @@ public class MainFrame extends JFrame {
         allErrors.addAll(parser.getSyntaxErrorList());
         currentSession.getActiveFile().getErrors().addAll(parser.getSyntaxErrorList());
         if (allErrors.isEmpty()) {
-            jTextPane1.setText(jTextPane1.getText() + "\n✅ --> Compilación exitosa\n");
+            jTextPane1.setText(jTextPane1.getText() + "\n✅ -> Analisis completado sin errores\n");
         } else {
-            jTextPane1.setText(jTextPane1.getText() + "\n❌--> Compilación con errores - Ver menu de reportes para detalles\n");
+            jTextPane1.setText(jTextPane1.getText() + "\n❌ -> Análisis no fue exitoso - Errores encontrados:\n");
             for (PError error : allErrors) {
                 jTextPane1.setText(jTextPane1.getText() + error.toString() + "\n");
             }
@@ -543,15 +576,15 @@ public class MainFrame extends JFrame {
 //        }
 //    }//GEN-LAST:event_errorsMenuItemActionPerformed
 //
-//    private void jMenuItem2ActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-//        var activeFile = currentSession.getActiveFile();
-//        if (activeFile != null) {
+    private void jMenuItem2ActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        var activeFile = currentSession.getActiveFile();
+        if (activeFile != null) {
 //            activeFile.getGlobalTable().addMethods(currentSession.getActiveFile().getCurrentTree());
-//            symbolsReportFrame.setSymbolTableAndShow(activeFile.getGlobalTable());
-//        }
-//    }//GEN-LAST:event_jMenuItem2ActionPerformed
+            typesReportFrame.setTypesTableAndShow(activeFile.getTypesTable());
+        }
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
-    private void saveAsFileBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsFileBtnActionPerformed
+    private void saveAsFileBtnActionPerformed(ActionEvent evt) {//GEN-FIRST:event_saveAsFileBtnActionPerformed
         var activeFile = currentSession.getActiveFile();
         if (activeFile != null) {
             if (!activeFile.isNew()) {
@@ -588,7 +621,7 @@ public class MainFrame extends JFrame {
                     var tln = new TextLineNumber(textPane, 3);
                     scrollPane.setRowHeaderView(tln);
 
-                    textPane.setFont(new Font("GeistMono Nerd Font", Font.PLAIN, 15));
+                    textPane.setFont(new Font("monospaced", Font.PLAIN, 15));
 
                     jTabbedPane1.add(newSessionFile.getName(), scrollPane);
                     jTabbedPane1.setTabComponentAt(jTabbedPane1.getTabCount() - 1, new ButtonTabComponent(jTabbedPane1, currentSession));
@@ -616,26 +649,31 @@ public class MainFrame extends JFrame {
         }
     }//GEN-LAST:event_saveAsFileBtnActionPerformed
 
+    private void analyzeAllCodeBtnActionPerformed(ActionEvent evt) {//GEN-FIRST:event_analyzeAllCodeBtnActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_analyzeAllCodeBtnActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel consoleOutputLabel;
-    private javax.swing.JMenuItem errorsMenuItem;
-    private javax.swing.JLabel fileStatusLabel;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JToolBar.Separator jSeparator2;
-    private javax.swing.JSplitPane jSplitPane2;
-    private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextPane jTextPane1;
-    private javax.swing.JToolBar jToolBar2;
-    private javax.swing.JButton newFileBtn;
-    private javax.swing.JButton openFileBtn;
-    private javax.swing.JMenu reportsMenu;
-    private javax.swing.JButton runCodeBtn;
-    private javax.swing.JButton saveAsFileBtn;
-    private javax.swing.JButton saveFileBtn;
+    private JButton analyzeAllCodeBtn;
+    private JLabel consoleOutputLabel;
+    private JMenuItem errorsMenuItem;
+    private JLabel fileStatusLabel;
+    private JMenuBar jMenuBar1;
+    private JMenuItem jMenuItem2;
+    private JPanel jPanel1;
+    private JPanel jPanel2;
+    private JScrollPane jScrollPane1;
+    private JToolBar.Separator jSeparator2;
+    private JSplitPane jSplitPane2;
+    private JTabbedPane jTabbedPane1;
+    private JTextPane jTextPane1;
+    private JToolBar jToolBar2;
+    private JButton newFileBtn;
+    private JButton openFileBtn;
+    private JMenu reportsMenu;
+    private JButton runCodeBtn;
+    private JButton saveAsFileBtn;
+    private JButton saveFileBtn;
     // End of variables declaration//GEN-END:variables
 }

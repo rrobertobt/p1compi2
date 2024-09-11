@@ -17,21 +17,20 @@ public class Arithmetic extends Statement {
 
     // constructor to handle negation (ex: -6)
     public Arithmetic(Statement uniqueOperand, ArithmeticOperators operator, int line, int column) {
-        super(-1, line, column);
+        super(0, line, column);
         this.uniqueOperand = uniqueOperand;
         this.operator = operator;
     }
 
     // constructor to handle any other operation
     public Arithmetic(Statement leftOperand, Statement rightOperand, ArithmeticOperators operator, int line, int column) {
-        super(-1, line, column);
+        super(0, line, column);
         this.leftOperand = leftOperand;
         this.rightOperand = rightOperand;
         this.operator = operator;
     }
 
     public Object execute(Tree tree, SymbolTable symbolTable, TypesTable typesTable) {
-        System.out.println("Executing Arithmetic");
         Object leftOperandValue = null, rightOperandValue = null, uniqueOperandValue = null;
         // error checking
         if (this.uniqueOperand != null){
@@ -39,6 +38,7 @@ public class Arithmetic extends Statement {
             if (uniqueOperandValue instanceof PError) return uniqueOperandValue;
         } else {
             leftOperandValue = this.leftOperand.execute(tree, symbolTable, typesTable);
+            System.out.println("leftOperandValue: " + leftOperand);
             if (leftOperandValue instanceof PError) return leftOperandValue;
 
             rightOperandValue = this.rightOperand.execute(tree, symbolTable, typesTable);
@@ -150,7 +150,7 @@ public class Arithmetic extends Statement {
             }
 
             default -> {
-                return new PError("Semantica", "No se puede sumar " + typesTable.getType(types.getLeftTypeId()).name + " con " + typesTable.getType(types.getRightTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de suma", this.line, this.column);
             }
         }
     }
@@ -190,7 +190,7 @@ public class Arithmetic extends Statement {
                 }
             }
             default -> {
-                return new PError("Semantica", "No se puede restar " + typesTable.getType(types.getLeftTypeId()).name + " con " + typesTable.getType(types.getRightTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de resta", this.line, this.column);
             }
         }
     }
@@ -230,7 +230,7 @@ public class Arithmetic extends Statement {
                 }
             }
             default -> {
-                return new PError("Semantica", "No se puede multiplicar " + typesTable.getType(types.getLeftTypeId()).name + " con " + typesTable.getType(types.getRightTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de multiplicación", this.line, this.column);
             }
         }
     }
@@ -270,7 +270,7 @@ public class Arithmetic extends Statement {
                 }
             }
             default -> {
-                return new PError("Semantica", "No se puede dividir " + typesTable.getType(types.getLeftTypeId()).name + " con " + typesTable.getType(types.getRightTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de división", this.line, this.column);
             }
         }
     }
@@ -291,7 +291,7 @@ public class Arithmetic extends Statement {
                 }
             }
             default -> {
-                return new PError("Semantica", "No se puede aplicar modulo a " + typesTable.getType(types.getLeftTypeId()).name + " con " + typesTable.getType(types.getRightTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de módulo", this.line, this.column);
             }
         }
     }
@@ -312,7 +312,7 @@ public class Arithmetic extends Statement {
                 return -(double) operand;
             }
             default -> {
-                return new PError("Semantica", "No se puede negar " + typesTable.getType(this.uniqueOperand.getTypeId()).name, this.line, this.column);
+                return new PError("Semantica", "Operación invalida de negación", this.line, this.column);
             }
         }
     }

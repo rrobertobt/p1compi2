@@ -34,7 +34,9 @@ public class ConstantDeclaration extends Statement {
         var symbolForTable = new SymbolVariable(this.typeId, true, this.id, result, this.line, this.column);
         boolean added = table.setSymbol(symbolForTable);
         if (!added) {
-            return new PError("Semantica", "Constante " + this.id + " ya está declarada", this.line, this.column);
+            var error = new PError("Semantica", "Constante " + this.id + " ya está declarada", this.line, this.column);
+            tree.addError(error);
+            return error;
         }
 
         return null;
