@@ -178,4 +178,8 @@ public class SymbolTable {
     public LinkedList<FunctionDeclaration> getFunctions() {
         return functions;
     }
+
+    public LinkedList<ProcedureDeclaration> getProcedures() {
+        return procedures;
+    }
 }

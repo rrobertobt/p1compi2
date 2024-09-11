@@ -207,8 +207,8 @@ PROGRAM_BODY_STATEMENT ::= SYMBOL_ASSIGNATION:a SEMICOLON {: RESULT = a; :}
                             | RW_CONTINUE:a SEMICOLON {: RESULT = new Continue(aleft, aright); :}
                             | CALL_TO_METHOD:a SEMICOLON {: RESULT = a; :}
                             | CASE_STATEMENT
-                            | WRITELN_CALL SEMICOLON
-                            | READLN_CALL SEMICOLON
+                            | WRITELN_CALL:a SEMICOLON {: RESULT = a; :}
+                            | READLN_CALL:a SEMICOLON {: RESULT = a; :}
                             ;
 //
 //STATEMENTS ::= STATEMENTS SEMICOLON STATEMENT
@@ -220,14 +220,14 @@ STATEMENT ::= SYMBOL_ASSIGNATION:a {: RESULT = a; :}
             | ARRAY_ASSIGNATION:a {: RESULT = a; :}
             | IF_STATEMENT:a {: RESULT = a; :}
             | CASE_STATEMENT
-            | WHILE_STATEMENT
-            | REPEAT_STATEMENT
-            | FOR_STATEMENT
-            | RW_BREAK
-            | RW_CONTINUE
-            | CALL_TO_METHOD
-            | WRITELN_CALL
-            | READLN_CALL
+            | WHILE_STATEMENT:a {: RESULT = a; :}
+            | REPEAT_STATEMENT:a {: RESULT = a; :}
+            | FOR_STATEMENT:a {: RESULT = a; :}
+            | RW_BREAK:a {: RESULT =new Break(aleft, aright);:}
+            | RW_CONTINUE:a {: RESULT =new Continue(aleft, aright); :}
+            | CALL_TO_METHOD:a {: RESULT = a; :}
+            | WRITELN_CALL:a {: RESULT = (Statement) a; :}
+            | READLN_CALL:a {: RESULT = (Statement) a; :}
             ;
 
 /*
@@ -544,11 +544,17 @@ REPEAT_STATEMENT ::= RW_REPEAT PROGRAM_BODY:a RW_UNTIL EXPRESSION:b SEMICOLON
 * for do loop
 */
 
-FOR_STATEMENT ::= RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO STATEMENT SEMICOLON
-                | RW_FOR ID COLON EQUALS EXPRESSION RW_DOWNTO EXPRESSION RW_DO STATEMENT SEMICOLON
+FOR_STATEMENT ::= RW_FOR ID:a COLON EQUALS EXPRESSION:b RW_TO EXPRESSION:c RW_DO STATEMENT:d SEMICOLON
+                {:
+                var statementAsList = new LinkedList<Statement>();
+                statementAsList.add(d);
+                RESULT = new ForLoop(aleft, aright, a, b, c, statementAsList);
 
-                | RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
-                | RW_FOR ID COLON EQUALS EXPRESSION RW_DOWNTO EXPRESSION RW_DO RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
+                :}
+                | RW_FOR ID:a COLON EQUALS EXPRESSION:b RW_TO EXPRESSION:c RW_DO RW_BEGIN PROGRAM_BODY:d RW_END SEMICOLON
+                {:
+                RESULT = new ForLoop(aleft, aright, a, b, c, d);
+                :}
                 ;
 
 /*
@@ -731,10 +737,14 @@ ARGUMENT ::= EXPRESSION
 /*
 reserved functions (writeln and readln)
 */
-WRITELN_CALL ::= RW_WRITELN OPENPAR CALL_ARGUMENTS CLOSEPAR
+WRITELN_CALL ::= RW_WRITELN OPENPAR CALL_ARGUMENTS:a CLOSEPAR {:
+                RESULT = new WritelnFunction(aleft, aright, a);
+                :}
                ;
 
-READLN_CALL ::= RW_READLN OPENPAR CALL_ARGUMENTS CLOSEPAR
+READLN_CALL ::= RW_READLN OPENPAR CALL_ARGUMENTS:a CLOSEPAR {:
+                RESULT = new ReadlnFunction(aleft, aright, a);
+                :}
                 ;
 
 /*

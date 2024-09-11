@@ -180,6 +180,19 @@ public class SymbolsReportFrame extends javax.swing.JFrame {
             this.jTable1.setValueAt(function.getColumn(), i, 7);
         }
 
+        var procedureDeclarations = globalTable.getProcedures();
+        for (; i < symbols.size() + functionDeclarations.size() + procedureDeclarations.size(); i++) {
+            var procedure = procedureDeclarations.get(i - symbols.size() - functionDeclarations.size());
+            this.jTable1.setValueAt(i+1, i, 0);
+            this.jTable1.setValueAt(procedure.getId(), i, 1);
+            this.jTable1.setValueAt("Procedimiento", i, 2);
+            this.jTable1.setValueAt(null, i, 3);
+            this.jTable1.setValueAt(procedure.getParams().size(), i, 4);
+            this.jTable1.setValueAt("Global", i, 5);
+            this.jTable1.setValueAt(procedure.getLine(), i, 6);
+            this.jTable1.setValueAt(procedure.getColumn(), i, 7);
+        }
+
 
 
         this.setVisible(true);

@@ -33,7 +33,7 @@ import java.util.LinkedList;
 %char
 %column
 %full
-//%debug
+%debug
 %ignorecase
 
 OPENPAR="("
@@ -174,6 +174,8 @@ RW_READLN="readln"
 //          return new Symbol(sym.XOR, yyline, yycolumn,yytext());}
 
 // reserved words
+<YYINITIAL> {RW_WRITELN} {return new Symbol(sym.RW_WRITELN, yyline, yycolumn,yytext());}
+<YYINITIAL> {RW_READLN} {return new Symbol(sym.RW_READLN, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_AND_THEN} {return new Symbol(sym.RW_AND_THEN, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_OR_ELSE} {return new Symbol(sym.RW_OR_ELSE, yyline, yycolumn,yytext());}
 <YYINITIAL> {RW_AND} {return new Symbol(sym.RW_AND, yyline, yycolumn,yytext());}
