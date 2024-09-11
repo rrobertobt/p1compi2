@@ -192,4 +192,11 @@ public class SymbolVariable {
             return "Variable";
         }
     }
+
+    public int getSize() {
+        if (this.isArray) {
+            return ((ArrayValue) this.value).getSize();
+        }
+        return 0;
+    }
 }

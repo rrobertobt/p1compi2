@@ -41,8 +41,19 @@ public class SymbolAssignation extends Statement {
         }
 
         //in case is an array of chars, we need to check if the value is a string
-//        if (symbol.isArray() && symbol.get() == TypesTable
-        System.out.println(symbol.getOriginalTypeId() + " " + symbol.getId());
+        if (symbol.isArray() && (symbol.getOriginalTypeId() == TypesTable.DefaultTypes.CHARACTER.id && this.newValue.getTypeId() == TypesTable.DefaultTypes.STRING.id)) {
+            if (result instanceof String) {
+                if (((String) result).length() > symbol.getSize()) {
+                    var error = new PError("Semantica", "Valor " + result + " excede el tamaño del arreglo " + id, this.line, this.column);
+                    tree.addError(error);
+                    return error;
+                }
+                result = ((String) result).toCharArray();
+                symbol.setValue(result);
+                return null;
+            }
+        }
+//        System.out.println(symbol.getOriginalTypeId() + " " + this.newValue.getTypeId());
 
         // in case it's a subrange, we need to check if the value is within the range
         if (symbol.isRange()) {
