@@ -56,7 +56,6 @@ public class VariableDeclaration extends Statement {
 
         // if a new type is defined within the variable declaration, we have to register it
         // but only if it does not exist already
-
         // check if there are duplicate ids
         for (int i = 0; i < ids.size(); i++) {
             for (int j = i + 1; j < ids.size(); j++) {
@@ -77,8 +76,6 @@ public class VariableDeclaration extends Statement {
 //        System.out.println("VariableDeclaration.willCreateType: "+this.parentTypeName+ typesTable.getType(this.parentTypeId));
 
         if ((isArray || isRange || isRecord)) {
-            System.out.println("VariableDeclaration.createType: minVal = " + this.minVal + ", maxVal = " + this.maxVal);
-            System.out.println("VariableDeclaration.createType: id = " + ids + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
             final String[] idName = {""};
             ids.forEach(id -> {
                 idName[0] = idName[0] + id;
@@ -97,10 +94,11 @@ public class VariableDeclaration extends Statement {
                 parentType = typesTable.getType(this.parentTypeId);
             }
             this.parentTypeId = parentType.id;
-            this.originalParentTypeId = parentType.id;
+//            this.originalParentTypeId = parentType.id;
 
             int newTypeId = recursivelyResolveParentType(this.parentTypeId, typesTable);
-            this.parentTypeId = newTypeId;
+            this.parentTypeId = parentType.id;
+            this.originalParentTypeId = newTypeId;
             this.typeId = newTypeId;
 
             // before check if the max value is greater than the min value
@@ -121,11 +119,8 @@ public class VariableDeclaration extends Statement {
                     (int) minVal,
                     (int) maxVal
             );
-            System.out.println("VariableDeclaration.createType: id = " + ids + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
-            System.out.println("generating type: " + typeName);
             Object result = newType.execute(tree, table, typesTable);
             this.typeId = typesTable.getType(typeName).id;
-            System.out.println("typeId: " + this.typeId + " typeName: " + typeName);
 //            if (result instanceof PError) {
 //                return result; // Return error if type registration fails
 //            }
@@ -136,7 +131,7 @@ public class VariableDeclaration extends Statement {
                     ArrayValueUtils.fillArrayWithPrimitives(this.parentTypeId, listOfVals, calculateSize(), (int) this.minVal, (int) this.maxVal, this.line, this.column);
                     var arrayVal = new ArrayValue(this.parentTypeId, listOfVals, this.calculateSize(), (int) this.minVal, (int) this.maxVal);
                     SymbolVariable symbol = new SymbolVariable(this.typeId, false, id, arrayVal, this.line, this.column);
-                    System.out.println("symbol"+symbol.getTypeId());
+                    symbol.setOriginalTypeId(this.originalParentTypeId);
 
                     boolean created = table.setSymbol(symbol);
                     if (!created) {
@@ -149,6 +144,9 @@ public class VariableDeclaration extends Statement {
                     var defaultVal = new Primitive(this.parentTypeId, this.line, this.column, (int) this.minVal);
                     var rangeVal = new SubrangeValue((int) this.minVal, (int) this.maxVal);
                     SymbolVariable symbol = new SymbolVariable(this.typeId, false, id, rangeVal, this.line, this.column);
+                    symbol.setIsRange(true);
+                    symbol.setMinVal(this.minVal);
+                    symbol.setMaxVal(this.maxVal);
 
                     boolean created = table.setSymbol(symbol);
                     if (!created) {
@@ -158,7 +156,6 @@ public class VariableDeclaration extends Statement {
             }
             return null;
         } else {
-            System.out.println("VariableDeclaration.createType: id = " + ids + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
             TypesTable.TypeTableEntry parentType;
             if (this.parentTypeName != null) {
                 parentType = typesTable.getType(this.parentTypeName);
@@ -168,10 +165,9 @@ public class VariableDeclaration extends Statement {
             this.typeId = parentType.id;
             this.parentTypeId = parentType.id;
             this.originalParentTypeId = parentType.id;
-            System.out.println("original type"+typesTable.getType(this.parentTypeId).name);
 
             int newType = recursivelyResolveParentType(this.parentTypeId, typesTable);
-            this.typeId = newType;
+            this.typeId = parentType.id;
             this.parentTypeId = newType;
 
         }
@@ -179,7 +175,6 @@ public class VariableDeclaration extends Statement {
         // Register the variable in the symbol table
         for (String id : ids) {
             // resolve the parentTypeId (if applies)
-            System.out.println("VariableDeclaration.execute: id = " + id + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
 //            if (this.parentTypeName != null) {
 //                this.parentTypeId = typesTable.getType(this.parentTypeName).id;
 //            } else if (this.parentTypeId > 5) {
@@ -206,7 +201,6 @@ public class VariableDeclaration extends Statement {
             }
 //            var arrayVal = new ArrayValue(this.parentTypeId, null, this.calculateSize(), (int) this.minVal, (int) this.maxVal);
 
-            System.out.println("VariableDeclaration.execute: id = " + id + ", value = " + this.value + "parentTypeId = " + this.parentTypeId);
             // execute the value
             var result = this.value.execute(tree, table, typesTable);
 

@@ -22,8 +22,8 @@ public class SymbolAccess extends Statement {
             return new PError("Semantica", "Variable/Constante: " + this.id + " no existe", this.line, this.column);
         }
         this.typeId = value.getTypeId();
-        System.out.println("SymbolAccess: " + value.getValue());
-        System.out.println("SymbolAccess: " + value.getTypeId());
+//        System.out.println("SymbolAccess: " + value.getValue());
+//        System.out.println("SymbolAccess: " + value.getTypeId());
         return value.getValue();
     }
 }

@@ -54,9 +54,7 @@ public class TypeDeclaration extends Statement {
 //            System.out.println("Entry: "+((TypesTable.TypeTableEntry)entry.getValue()).name);
 //        }
         if (!isArray && !isRange && !isRecord && (parentTypeName == null)) {
-            System.out.println("Parent type id: " + parentTypeId);
             for (String name : names) {
-                System.out.println(name);
                 var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId,  TypeUtils.recursivelyResolveBaseType(parentTypeId, typesTable), size, isArray, isRecord, isRange, null, null);
                 boolean created = typesTable.setType(newType);
                 if (!created) {
@@ -83,7 +81,6 @@ public class TypeDeclaration extends Statement {
                 return new PError("Semantica", "Valor máximo de rango/arreglo debe ser mayor que el valor mínimo", this.line, this.column);
             }
             for (String name : names) {
-                System.out.println(name);
                 var newType = new TypesTable.TypeTableEntry(typesTable.getIdCounter(), name, parentTypeId, TypeUtils.recursivelyResolveBaseType(parentTypeId, typesTable),size, isArray, isRecord, isRange, start, end);
                 boolean created = typesTable.setType(newType);
                 if (!created) {

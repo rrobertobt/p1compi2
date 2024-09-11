@@ -1132,12 +1132,6 @@ class CUP$PParser$actions {
     RESULT.getStatements().addAll(constsList);
     RESULT.getStatements().addAll(varsList);
 
-    for (Statement s : RESULT.getStatements()){
-        if (s instanceof TypeDeclaration){
-          ((TypeDeclaration)s).getNames();
-        }
-    }
-    System.out.println("Program header: "+RESULT.getStatements().size());
     
               CUP$PParser$result = parser.getSymbolFactory().newSymbol("PROGRAM_HEADER",2, ((java_cup.runtime.Symbol)CUP$PParser$stack.elementAt(CUP$PParser$top-3)), ((java_cup.runtime.Symbol)CUP$PParser$stack.peek()), RESULT);
             }
@@ -2050,7 +2044,7 @@ class CUP$PParser$actions {
 		int bleft = ((java_cup.runtime.Symbol)CUP$PParser$stack.peek()).left;
 		int bright = ((java_cup.runtime.Symbol)CUP$PParser$stack.peek()).right;
 		TypeDeclaration.ArrayTypeDeclarationHelper b = (TypeDeclaration.ArrayTypeDeclarationHelper)((java_cup.runtime.Symbol) CUP$PParser$stack.peek()).value;
-		 RESULT = new VariableDeclaration(-1, aleft, aright, a, null, true, false, false, b.getRangeDefinition()[0], b.getRangeDefinition()[1], null, b.getParentTypeId()); 
+		 RESULT = new VariableDeclaration(-1, aleft, aright, a, null, true, false, false, b.getRangeDefinition()[0], b.getRangeDefinition()[1], b.getParentTypeName(), b.getParentTypeId());
               CUP$PParser$result = parser.getSymbolFactory().newSymbol("VARIABLE_DECLARATION",23, ((java_cup.runtime.Symbol)CUP$PParser$stack.elementAt(CUP$PParser$top-2)), ((java_cup.runtime.Symbol)CUP$PParser$stack.peek()), RESULT);
             }
           return CUP$PParser$result;

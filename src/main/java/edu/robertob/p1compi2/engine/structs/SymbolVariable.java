@@ -40,6 +40,7 @@ public class SymbolVariable {
         this.value = value;
         this.line = line;
         this.column = column;
+        this.isArray = true;
     }
 
     public SymbolVariable(int typeId, boolean constant, String id, SubrangeValue value, int line, int column) {
@@ -119,6 +120,19 @@ public class SymbolVariable {
         return isArray;
     }
 
+    public void setIsArray(boolean isArray) {
+        this.isArray = isArray;
+    }
+
+    public void setIsRecord(boolean isRecord) {
+        this.isRecord = isRecord;
+    }
+
+
+    public  void setIsRange(boolean isRange) {
+        this.isRange = isRange;
+    }
+
     public void setArray(boolean array) {
         isArray = array;
     }
@@ -161,6 +175,10 @@ public class SymbolVariable {
 
     public void setMethod(boolean isMethod) {
         this.isMethod = isMethod;
+    }
+
+    public String toString() {
+        return this.id + " - " + this.typeId + " - " + this.value + " - " + this.constant + " - " + this.isRange + " - " + this.isArray + " - " + this.isRecord;
     }
 
     public String getCategory() {

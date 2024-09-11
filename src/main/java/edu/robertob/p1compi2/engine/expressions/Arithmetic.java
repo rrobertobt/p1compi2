@@ -38,7 +38,6 @@ public class Arithmetic extends Statement {
             if (uniqueOperandValue instanceof PError) return uniqueOperandValue;
         } else {
             leftOperandValue = this.leftOperand.execute(tree, symbolTable, typesTable);
-            System.out.println("leftOperandValue: " + leftOperand);
             if (leftOperandValue instanceof PError) return leftOperandValue;
 
             rightOperandValue = this.rightOperand.execute(tree, symbolTable, typesTable);

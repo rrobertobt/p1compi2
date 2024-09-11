@@ -170,12 +170,6 @@ PROGRAM_HEADER ::=
     RESULT.getStatements().addAll(constsList);
     RESULT.getStatements().addAll(varsList);
 
-    for (Statement s : RESULT.getStatements()){
-        if (s instanceof TypeDeclaration){
-            ((TypeDeclaration)s).getNames();
-        }
-    }
-    System.out.println("Program header: "+RESULT.getStatements().size());
     :}
 ;
 
@@ -345,7 +339,7 @@ VARIABLE_DECLARATION_LIST ::= VARIABLE_DECLARATION:a SEMICOLON VARIABLE_DECLARAT
 // params: int typeId, int line, int column, LinkedList<String> ids, Statement value, boolean isArray, boolean isRange, boolean isRecord, Object minVal, Object maxVal, String parentTypeName, int parentTypeId
 VARIABLE_DECLARATION ::= IDENTIFIER_LIST:a COLON TYPE:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, false, false, null, null, null, b); :}
                     | IDENTIFIER_LIST:a COLON ID:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, false, false, null, null, b, -1); :}
-                    | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, true, false, false, b.getRangeDefinition()[0], b.getRangeDefinition()[1], null, b.getParentTypeId()); :}
+                    | IDENTIFIER_LIST:a COLON ARRAY_TYPE:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, true, false, false, b.getRangeDefinition()[0], b.getRangeDefinition()[1], b.getParentTypeName(), b.getParentTypeId());:}
                     | IDENTIFIER_LIST:a COLON RECORD_USE:b {::}
                     | IDENTIFIER_LIST:a COLON RANGE_DEF:b {: RESULT = new VariableDeclaration(-1, aleft, aright, a, null, false, true, false, b[0], b[1], null, TypesTable.DefaultTypes.INTEGER.id); :}
 ;
@@ -536,6 +530,7 @@ REPEAT_STATEMENT ::= RW_REPEAT PROGRAM_BODY:a RW_UNTIL EXPRESSION:b SEMICOLON
 
 FOR_STATEMENT ::= RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO STATEMENT SEMICOLON
                 | RW_FOR ID COLON EQUALS EXPRESSION RW_DOWNTO EXPRESSION RW_DO STATEMENT SEMICOLON
+
                 | RW_FOR ID COLON EQUALS EXPRESSION RW_TO EXPRESSION RW_DO RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
                 | RW_FOR ID COLON EQUALS EXPRESSION RW_DOWNTO EXPRESSION RW_DO RW_BEGIN PROGRAM_BODY RW_END SEMICOLON
                 ;

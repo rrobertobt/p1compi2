@@ -40,8 +40,23 @@ public class SymbolAssignation extends Statement {
             }
         }
 
+        //in case is an array of chars, we need to check if the value is a string
+//        if (symbol.isArray() && symbol.get() == TypesTable
+        System.out.println(symbol.getOriginalTypeId() + " " + symbol.getId());
+
         // in case it's a subrange, we need to check if the value is within the range
-        if (symbol.isRange()) System.out.println("SymbolAssignation: symbol is range");
+        if (symbol.isRange()) {
+            if (result instanceof Integer) {
+                if ((int) result < (int) symbol.getMinVal() || (int) result > (int) symbol.getMaxVal()) {
+                    var error = new PError("Semantica", "Valor " + result + " fuera de rango [" + symbol.getMinVal() + ", " + symbol.getMaxVal() + "]" + " en variable " + id
+                            , this.line, this.column);
+                    tree.addError(error);
+                    return error;
+                }
+            }
+            return null;
+        }
+
 
         if (symbol.getTypeId() != this.newValue.getTypeId()) {
             var err = new PError("Semantica", "No se puede asignar el valor de tipo " + typesTable.getType(this.newValue.getTypeId()).name + " a una variable de tipo " + typesTable.getType(symbol.getTypeId()).name + "(" + (Objects.equals(typesTable.getType(symbol.getOriginalTypeId()).name, "void") ? "" : typesTable.getType(symbol.getOriginalTypeId()).name) + ")", this.line, this.column);

@@ -41,7 +41,7 @@ public class SymbolsReportFrame extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Helvetica Neue", 0, 18)); // NOI18N
         jLabel1.setText("Reporte - Tabla de símbolos");
 
-        jTable1.setFont(new java.awt.Font("Helvetica Neue", 1, 14)); // NOI18N
+        jTable1.setFont(new java.awt.Font("Helvetica Neue", 0, 16)); // NOI18N
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null, null, null},
